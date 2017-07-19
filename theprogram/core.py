@@ -2,6 +2,7 @@
 Core classes for theprogram ppi predictor
 '''
 
+# CLASSES
 # ----------------------------------------------
 class Article(object):
     '''
@@ -37,6 +38,12 @@ class Article(object):
     def extract_sentences(self):
         '''
         Finds sentence boundaries and saves them as sentence objects
+        '''
+        pass
+
+    def count_genes(self):
+        '''
+        Returns how many times each gene appears. Dictionary of gene objects with counts as values
         '''
         pass
 
@@ -84,3 +91,18 @@ class Gene(object):
         Method for disambiguating the gene (convert it to the approved symbol if possible)
         '''
         pass
+
+
+# EXCEPTIONS
+# ----------------------------------------------
+class FullTextNotAvailable(Exception):
+    '''
+    Exception raised when the text is not available in PubMed
+    '''
+    pass
+
+class ConnectionError(Exception):
+    '''
+    Exception raised when can't connect to online service such as PubMed or PubMedCentral
+    '''
+    pass
