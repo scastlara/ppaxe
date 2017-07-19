@@ -4,6 +4,7 @@ Core classes for ppaxe ppi predictor
 
 import requests
 from xml.dom import minidom
+from nltk.tag.stanford import StanfordNERTagger
 #import json
 
 # CLASSES
@@ -38,7 +39,6 @@ class Article(object):
             'rettype': 'abstract'
         }
         req = requests.get("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi", params=params)
-
         if req.status_code == 200:
             self.abstract = req.content
         else:
@@ -57,7 +57,6 @@ class Article(object):
                     'db':      'pmc',
                 }
                 req = requests.get("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi", params=params)
-
                 if req.status_code == 200:
                     self.fulltext = minidom.parseString(req.content)
                 else:
@@ -73,11 +72,14 @@ class Article(object):
         '''
         pass
 
-    def extract_sentences(self):
+    def extract_sentences(self, source="fulltext"):
         '''
         Finds sentence boundaries and saves them as sentence objects
         '''
-        pass
+        if source == "fulltext":
+            pass
+        else:
+            pass
 
     def count_genes(self):
         '''
@@ -147,15 +149,11 @@ class ConnectionError(Exception):
     pass
 
 
-# Get things from minidom article
 '''
+# Get things from minidom article
 paragraphs = object.getElementsByTagName('p')
 for par in paragraphs:
     print " ".join(t.nodeValue for t in par.childNodes if t.nodeType == t.TEXT_NODE)
     print "\n\n\n++++++\n\n\n"
-
-
-
-
 
 '''
