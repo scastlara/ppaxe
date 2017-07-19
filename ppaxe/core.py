@@ -1,6 +1,10 @@
 '''
-Core classes for theprogram ppi predictor
+Core classes for ppaxe ppi predictor
 '''
+
+import requests
+from xml.dom import minidom
+#import json
 
 # CLASSES
 # ----------------------------------------------
@@ -10,7 +14,7 @@ class Article(object):
         PMID:      PubMed Identifier
         PMCID:     PubMedCentral Identifier
         Abstract:  Full abstract as a string
-        Fulltext:  Full text of article as a string
+        Fulltext:  Full text of article as an xml minidom object
         Sentences: List of sentence objects
     '''
     def __init__(self, pmid, pmcid=None):
@@ -23,11 +27,45 @@ class Article(object):
         self.fulltext  = None
         self.sentences = None
 
+    def download_abstract(self):
+        '''
+        Adds the abstract
+        '''
+        params = {
+            'id':      self.pmid,
+            'db':      'pubmed',
+            'retmode': 'text',
+            'rettype': 'abstract'
+        }
+        req = requests.get("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi", params=params)
+
+        if req.status_code == 200:
+            self.abstract = req.content
+        else:
+            raise TextNotAvailable("Abstract not available for PMID: %s" % self.pmid)
+
     def download_fulltext(self, source="PMC"):
         '''
         Adds fulltext to the Article object
         '''
-        pass
+        if source == "PMC":
+            if not self.pmcid:
+                pass
+            else:
+                params = {
+                    'id':      self.pmcid,
+                    'db':      'pmc',
+                }
+                req = requests.get("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi", params=params)
+
+                if req.status_code == 200:
+                    self.fulltext = minidom.parseString(req.content)
+                else:
+                    raise TextNotAvailable("Abstract not available for PMID: %s" % self.pmid)
+        elif source == "epub":
+            pass
+        else:
+            pass
 
     def as_html(self):
         '''
@@ -43,7 +81,8 @@ class Article(object):
 
     def count_genes(self):
         '''
-        Returns how many times each gene appears. Dictionary of gene objects with counts as values
+        Returns how many times each gene appears.
+        Dictionary of gene objects with counts as values
         '''
         pass
 
@@ -95,7 +134,7 @@ class Gene(object):
 
 # EXCEPTIONS
 # ----------------------------------------------
-class FullTextNotAvailable(Exception):
+class TextNotAvailable(Exception):
     '''
     Exception raised when the text is not available in PubMed
     '''
@@ -106,3 +145,17 @@ class ConnectionError(Exception):
     Exception raised when can't connect to online service such as PubMed or PubMedCentral
     '''
     pass
+
+
+# Get things from minidom article
+'''
+paragraphs = object.getElementsByTagName('p')
+for par in paragraphs:
+    print " ".join(t.nodeValue for t in par.childNodes if t.nodeType == t.TEXT_NODE)
+    print "\n\n\n++++++\n\n\n"
+
+
+
+
+
+'''
