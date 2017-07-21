@@ -4,10 +4,20 @@ Core classes for ppaxe ppi predictor
 
 import requests
 from xml.dom import minidom
-from nltk.tag.stanford import StanfordNERTagger
-#import json
+import ner
+import re
+
+NER_TAGGER = ner.SocketNER(host='localhost', port=9000)
 
 # CLASSES
+# ----------------------------------------------
+class PBQuery(object):
+    '''
+    Class for PubMed queries. Will have Article objects. Will try to
+    do only ONE GET request... so that the time to retrieve the articles is reduced
+    '''
+    pass
+
 # ----------------------------------------------
 class Article(object):
     '''
@@ -16,7 +26,7 @@ class Article(object):
         PMCID:     PubMedCentral Identifier
         Abstract:  Full abstract as a string
         Fulltext:  Full text of article as an xml minidom object
-        Sentences: List of sentence objects
+        Sentences: List of sentence strings
     '''
     def __init__(self, pmid, pmcid=None):
         '''
@@ -27,6 +37,8 @@ class Article(object):
         self.abstract  = None
         self.fulltext  = None
         self.sentences = None
+        self.genes     = None
+        self.tagged    = None
 
     def download_abstract(self):
         '''
@@ -75,11 +87,51 @@ class Article(object):
     def extract_sentences(self, source="fulltext"):
         '''
         Finds sentence boundaries and saves them as sentence objects
+        Does not work very well.
         '''
+        text = ""
         if source == "fulltext":
-            pass
+            text = self.fulltext
         else:
-            pass
+            text = self.abstract
+
+        if self.tagged:
+            text = self.tagged
+
+        caps = "([A-Z])"
+        prefixes = "(Mr|St|Mrs|Ms|Dr)[.]"
+        digits = "([0-9])"
+        suffixes = "(Inc|Ltd|Jr|Sr|Co)"
+        starters = "(Mr|Mrs|Ms|Dr|He\s|She\s|It\s|They\s|Their\s|Our\s|We\s|But\s|However\s|That\s|This\s|Wherever)"
+        acronyms = "([A-Z][.][A-Z][.](?:[A-Z][.])?)"
+        websites = "[.](com|net|org|io|gov)"
+        text = " " + text + "  "
+        text = text.replace("\n"," ")
+        text = re.sub(prefixes,"\\1<prd>",text)
+        text = re.sub(websites,"<prd>\\1",text)
+        if "Ph.D" in text: text = text.replace("Ph.D.","Ph<prd>D<prd>")
+        text = re.sub("\s" + caps + "[.] "," \\1<prd> ",text)
+        text = re.sub(acronyms+" "+starters,"\\1<stop> \\2",text)
+        text = re.sub(caps + "[.]" + caps + "[.]" + caps + "[.]","\\1<prd>\\2<prd>\\3<prd>",text)
+        text = re.sub(caps + "[.]" + caps + "[.]","\\1<prd>\\2<prd>",text)
+        text = re.sub(" "+suffixes+"[.] "+starters," \\1<stop> \\2",text)
+        text = re.sub(" "+suffixes+"[.]"," \\1<prd>",text)
+        text = re.sub(" " + caps + "[.]"," \\1<prd>",text)
+        text = re.sub(digits + "[.]" + digits,"\\1<prd>\\2",text)
+        if "”"    in text: text = text.replace(".”","”.")
+        if "\""   in text: text = text.replace(".\"","\".")
+        if "!"    in text: text = text.replace("!\"","\"!")
+        if "?"    in text: text = text.replace("?\"","\"?")
+        if "e.g." in text: text = text.replace("e.g.","e<prd>g<prd>")
+        if "i.e." in text: text = text.replace("i.e.","i<prd>e<prd>")
+        text = text.replace(".",".<stop>")
+        text = text.replace("?","?<stop>")
+        text = text.replace("!","!<stop>")
+        text = text.replace("<prd>",".")
+        sentences = text.split("<stop>")
+        sentences = sentences[:-1]
+        sentences = [s.strip() for s in sentences]
+        self.sentences = sentences
 
     def count_genes(self):
         '''
@@ -88,44 +140,36 @@ class Article(object):
         '''
         pass
 
-
-# ----------------------------------------------
-class Sentence(object):
-    '''
-    Class for sentences
-        Original:  Text of the sentence
-        tokenjson: JSON string with the sentence tokenized by SP
-        genes:     List of Gene objects in the sentence
-    '''
-    def __init__(self, original):
+    def make_wordcloud(self):
         '''
-        Original required
-        '''
-        self.original   = original
-        self.tokenjson  = None
-        self.genes      = list()
-
-    def tokenize(self):
-        '''
-        Tokenize (in JSON) the sentence using the Standford Parser
+        Creates a wordcloud image
         '''
         pass
 
-    def as_html(self):
+    def tag_proteins(self, source="fulltext"):
         '''
-        Writes the tokenized sentence as an HTML
+        Uses stanford parser to tag the proteins in the sentence
         '''
-        pass
+        # Call SP
+        if source == "fulltext":
+            self.tagged = NER_TAGGER.tag_text(self.fulltext)
+        else:
+            self.tagged = NER_TAGGER.tag_text(self.abstract)
+        # Now add annotated genes to self.genes...
+
 
 # ----------------------------------------------
 class Gene(object):
     '''
     Class for genes in sentences
     '''
-    def __init__(self, symbol, position):
-        self.symbol   = symbol
-        self.position = position
-        self.synonym  = list()
+    def __init__(self, symbol, positions):
+        # disambiguate first..?
+        self.disambiguate()
+        self.symbol    = symbol
+        self.positions = positions
+        self.synonym   = list()
+        self.count     = len(positions)
 
     def disambiguate(self):
         '''
@@ -155,5 +199,4 @@ paragraphs = object.getElementsByTagName('p')
 for par in paragraphs:
     print " ".join(t.nodeValue for t in par.childNodes if t.nodeType == t.TEXT_NODE)
     print "\n\n\n++++++\n\n\n"
-
 '''
