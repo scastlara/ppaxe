@@ -16,7 +16,7 @@ NLP = StanfordCoreNLP('http://localhost:9000')
 
 # CLASSES
 # ----------------------------------------------
-class PBQuery(object):
+class PMQuery(object):
     '''
     Class for PubMed queries. Will have Article objects. Will try to
     do only ONE GET request... so that the time to retrieve the articles is reduced
@@ -45,14 +45,14 @@ class PBQuery(object):
                     pmid  = article.getElementsByTagName('article-id')[0].firstChild.nodeValue
                     pmcid = article.getElementsByTagName('article-id')[1].firstChild.nodeValue
                     body =  article.getElementsByTagName('body')
-                    #print(body[0].getElementsByTagName('p'))
                     paragraphs = body[0].getElementsByTagName('p')
                     fulltext = list()
                     for par in paragraphs:
                         fulltext.append(" ".join(t.nodeValue.encode('utf-8') for t in par.childNodes if t.nodeType == t.TEXT_NODE))
                     self.articles.append(Article(pmid=pmid, pmcid=pmcid, fulltext="\n".join(fulltext)))
             else:
-                raise TextNotAvailable("Abstract not available for PMID: %s" % self.pmid)
+                PubMedQueryError("Can't connect to PMC...")
+
         elif self.database == "PUBMED":
             # Do abstract query
             params = {
@@ -72,53 +72,17 @@ class Article(object):
         Fulltext:  Full text of article as an xml minidom object
         Sentences: List of sentence strings
     '''
-    def __init__(self, pmid, pmcid=None, fulltext=None):
+    def __init__(self, pmid, pmcid=None, fulltext=None, abstract=None):
         '''
         Required: PMID
         '''
         self.pmid      = pmid
         self.pmcid     = pmcid
-        self.abstract  = None
-        self.fulltext  = None
+        self.abstract  = abstract
+        self.fulltext  = fulltext
         self.sentences = None
         self.genes     = None
         self.annotated = None
-
-    '''
-    def download_abstract(self):
-        Adds the abstract
-        params = {
-            'id':      self.pmid,
-            'db':      'pubmed',
-            'retmode': 'text',
-            'rettype': 'abstract'
-        }
-        req = requests.get("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi", params=params)
-        if req.status_code == 200:
-            self.abstract = req.content
-        else:
-            raise TextNotAvailable("Abstract not available for PMID: %s" % self.pmid)
-
-    def download_fulltext(self, source="PMC"):
-        Adds fulltext to the Article object
-        if source == "PMC":
-            if not self.pmcid:
-                pass
-            else:
-                params = {
-                    'id':      self.pmcid,
-                    'db':      'pmc',
-                }
-                req = requests.get("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi", params=params)
-                if req.status_code == 200:
-                    self.fulltext = minidom.parseString(req.content)
-                else:
-                    raise TextNotAvailable("Abstract not available for PMID: %s" % self.pmid)
-        elif source == "epub":
-            pass
-        else:
-            pass
-    '''
 
     def as_html(self):
         '''
@@ -225,17 +189,14 @@ class TextNotAvailable(Exception):
     '''
     pass
 
+class PubMedQueryError(Exception):
+    '''
+    Exception raised when query to Pubmed or PMC does not return a 200 response.
+    '''
+    pass
+
 class ConnectionError(Exception):
     '''
     Exception raised when can't connect to online service such as PubMed or PubMedCentral
     '''
     pass
-
-
-'''
-# Get things from minidom article
-paragraphs = object.getElementsByTagName('p')
-for par in paragraphs:
-    print " ".join(t.nodeValue for t in par.childNodes if t.nodeType == t.TEXT_NODE)
-    print "\n\n\n++++++\n\n\n"
-'''
