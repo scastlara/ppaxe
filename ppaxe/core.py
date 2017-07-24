@@ -34,10 +34,25 @@ class PBQuery(object):
         if self.database == "PMC":
             # Do fulltext query
             params = {
-                    'id':      ",".join(self.ids),
-                    'db':      'pmc',
+                    'id': ",".join(self.ids),
+                    'db': 'pmc',
             }
             req = requests.get("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi", params=params)
+            if req.status_code == 200:
+                article_text = minidom.parseString(req.content)
+                articles = article_text.getElementsByTagName('article')
+                for article in articles:
+                    pmid  = article.getElementsByTagName('article-id')[0].firstChild.nodeValue
+                    pmcid = article.getElementsByTagName('article-id')[1].firstChild.nodeValue
+                    body =  article.getElementsByTagName('body')
+                    #print(body[0].getElementsByTagName('p'))
+                    paragraphs = body[0].getElementsByTagName('p')
+                    fulltext = list()
+                    for par in paragraphs:
+                        fulltext.append(" ".join(t.nodeValue.encode('utf-8') for t in par.childNodes if t.nodeType == t.TEXT_NODE))
+                    self.articles.append(Article(pmid=pmid, pmcid=pmcid, fulltext="\n".join(fulltext)))
+            else:
+                raise TextNotAvailable("Abstract not available for PMID: %s" % self.pmid)
         elif self.database == "PUBMED":
             # Do abstract query
             params = {
@@ -57,7 +72,7 @@ class Article(object):
         Fulltext:  Full text of article as an xml minidom object
         Sentences: List of sentence strings
     '''
-    def __init__(self, pmid, pmcid=None):
+    def __init__(self, pmid, pmcid=None, fulltext=None):
         '''
         Required: PMID
         '''
