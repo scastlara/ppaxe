@@ -5,6 +5,7 @@ Core classes for ppaxe ppi predictor
 
 import requests
 from xml.dom import minidom
+import json
 import re
 from pycorenlp import StanfordCoreNLP
 
@@ -12,6 +13,33 @@ from pycorenlp import StanfordCoreNLP
 NLP = StanfordCoreNLP('http://localhost:9000')
 
 #NER_TAGGER = ner.SocketNER(host='localhost', port=9000)
+
+
+# CLASSES
+# ----------------------------------------------
+def pmid_2_pmc(identifiers):
+    '''
+    Transforms a list of PubMed Ids to PMC ids
+    '''
+    pmcids = set()
+    params = {
+        'ids': ",".join(identifiers),
+        'format': 'json'
+    }
+    req = requests.get("https://www.ncbi.nlm.nih.gov/pmc/utils/idconv/v1.0/", params=params)
+    if req.status_code == 200:
+        response = json.loads(req.content)
+
+        for record in response['records']:
+            if 'status' in record:
+                continue
+            pmcids.add(record['pmcid'][3:])
+        return list(pmcids)
+    else:
+        raise PubMedQueryError("Can't convert identifiers through Pubmed idconv tool.")
+
+
+
 
 # CLASSES
 # ----------------------------------------------
@@ -34,7 +62,7 @@ class PMQuery(object):
         if self.database == "PMC":
             # Do fulltext query
             params = {
-                    'id': ",".join(self.ids),
+                    'id': ",".join(pmid_2_pmc(self.ids)),
                     'db': 'pmc',
             }
             req = requests.get("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi", params=params)
@@ -44,10 +72,7 @@ class PMQuery(object):
                 for article in articles:
                     pmid  = article.getElementsByTagName('article-id')[0].firstChild.nodeValue
                     pmcid = article.getElementsByTagName('article-id')[1].firstChild.nodeValue
-                    if self.database == "PMC":
-                        self.found.add(pmcid)
-                    elif self.database == "PUBMED":
-                        self.found.add(pmid)
+                    self.found.add(pmid)
                     body =  article.getElementsByTagName('body')
                     paragraphs = body[0].getElementsByTagName('p')
                     fulltext = list()
@@ -69,6 +94,8 @@ class PMQuery(object):
     def __iter__(self):
         return iter(self.articles)
 
+    def __getitem__(self, index):
+        return self.articles[index]
 
 # ----------------------------------------------
 class Article(object):
