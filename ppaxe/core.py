@@ -5,7 +5,6 @@ Core classes for ppaxe ppi predictor
 
 import requests
 from xml.dom import minidom
-import ner
 import re
 from pycorenlp import StanfordCoreNLP
 
@@ -123,7 +122,8 @@ class Article(object):
         text = text.replace("\n"," ")
         text = re.sub(prefixes,"\\1<prd>",text)
         text = re.sub(websites,"<prd>\\1",text)
-        if "Ph.D" in text: text = text.replace("Ph.D.","Ph<prd>D<prd>")
+        if "Ph.D" in text:
+            text = text.replace("Ph.D.","Ph<prd>D<prd>")
         text = re.sub(r"\s" + caps + "[.] "," \\1<prd> ",text)
         text = re.sub(acronyms+" "+starters,"\\1<stop> \\2",text)
         text = re.sub(caps + "[.]" + caps + "[.]" + caps + "[.]","\\1<prd>\\2<prd>\\3<prd>",text)
@@ -135,12 +135,18 @@ class Article(object):
         text = re.sub(digits + "[.]" + digits,"\\1<prd>\\2",text)
         text = re.sub(digits + "[.]" + fig_letters,"\\1<prd>\\2",text)
         text = re.sub(species, "\\1<prd> \\2", text)
-        if "”"    in text: text = text.replace(".”","”.")
-        if "\""   in text: text = text.replace(".\"","\".")
-        if "!"    in text: text = text.replace("!\"","\"!")
-        if "?"    in text: text = text.replace("?\"","\"?")
-        if "e.g." in text: text = text.replace("e.g.","e<prd>g<prd>")
-        if "i.e." in text: text = text.replace("i.e.","i<prd>e<prd>")
+        if "”"    in text:
+            text = text.replace(".”","”.")
+        if "\""   in text:
+            text = text.replace(".\"","\".")
+        if "!"    in text:
+            text = text.replace("!\"","\"!")
+        if "?"    in text:
+            text = text.replace("?\"","\"?")
+        if "e.g." in text:
+            text = text.replace("e.g.","e<prd>g<prd>")
+        if "i.e." in text:
+            text = text.replace("i.e.","i<prd>e<prd>")
         text = text.replace(".",".<stop>")
         text = text.replace("?","?<stop>")
         text = text.replace("!","!<stop>")
@@ -171,7 +177,10 @@ class Article(object):
             self.extract_sentences()
         # Call SP
         for sentence in self.sentences:
-            self.annotated = NLP.annotate(sentence,properties={'outputFormat':'json'})['sentences'][0]['tokens']
+            self.annotated = NLP.annotate(
+            sentence,
+            properties={'outputFormat':'json'}
+        )['sentences'][0]['tokens']
         # Now add annotated genes to self.genes...
 
 
@@ -190,7 +199,8 @@ class Gene(object):
 
     def disambiguate(self):
         '''
-        Method for disambiguating the gene (convert it to the approved symbol if possible)
+        Method for disambiguating the gene
+        (convert it to the approved symbol if possible)
         '''
         pass
 
@@ -211,6 +221,7 @@ class PubMedQueryError(Exception):
 
 class ConnectionError(Exception):
     '''
-    Exception raised when can't connect to online service such as PubMed or PubMedCentral
+    Exception raised when can't connect to online service such as PubMed
+    or PubMedCentral
     '''
     pass
