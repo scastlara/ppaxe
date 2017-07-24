@@ -1,0 +1,3 @@
+*.pyc
+ppaxe/*.pyc
+tests/*.pyc
