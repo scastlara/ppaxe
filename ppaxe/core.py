@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''
 Core classes for ppaxe ppi predictor
 '''
@@ -20,7 +21,31 @@ class PBQuery(object):
     Class for PubMed queries. Will have Article objects. Will try to
     do only ONE GET request... so that the time to retrieve the articles is reduced
     '''
-    pass
+    def __init__(self, ids, database="PMC"):
+        self.ids = ids
+        self.database = database
+        self.articles = list()
+        self.notfound = list()
+
+    def get_articles(self):
+        '''
+        Retrieves the Fulltext or the abstracts of the specified Articles
+        '''
+        if self.database == "PMC":
+            # Do fulltext query
+            params = {
+                    'id':      ",".join(self.ids),
+                    'db':      'pmc',
+            }
+            req = requests.get("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi", params=params)
+        elif self.database == "PUBMED":
+            # Do abstract query
+            params = {
+                    'id':      ",".join(self.ids),
+                    'db':      'pubmed',
+            }
+            req = requests.get("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi", params=params)
+
 
 # ----------------------------------------------
 class Article(object):
@@ -44,10 +69,9 @@ class Article(object):
         self.genes     = None
         self.annotated = None
 
+    '''
     def download_abstract(self):
-        '''
         Adds the abstract
-        '''
         params = {
             'id':      self.pmid,
             'db':      'pubmed',
@@ -61,9 +85,7 @@ class Article(object):
             raise TextNotAvailable("Abstract not available for PMID: %s" % self.pmid)
 
     def download_fulltext(self, source="PMC"):
-        '''
         Adds fulltext to the Article object
-        '''
         if source == "PMC":
             if not self.pmcid:
                 pass
@@ -81,6 +103,7 @@ class Article(object):
             pass
         else:
             pass
+    '''
 
     def as_html(self):
         '''
