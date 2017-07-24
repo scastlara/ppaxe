@@ -61,6 +61,9 @@ class PMQuery(object):
             }
             req = requests.get("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi", params=params)
 
+    def __iter__(self):
+        return iter(self.articles)
+
 
 # ----------------------------------------------
 class Article(object):
