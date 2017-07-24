@@ -74,6 +74,8 @@ class PMQuery(object):
                     pmcid = article.getElementsByTagName('article-id')[1].firstChild.nodeValue
                     self.found.add(pmid)
                     body =  article.getElementsByTagName('body')
+                    if len(body) == 0:
+                        continue
                     paragraphs = body[0].getElementsByTagName('p')
                     fulltext = list()
                     for par in paragraphs:
