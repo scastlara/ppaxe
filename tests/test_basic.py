@@ -21,6 +21,22 @@ def test_multiple_article_query():
     pmid_concatenation = query.articles[0].pmid + query.articles[1].pmid
     assert(pmid_concatenation == "2561582327612382")
 
+def test_query_found():
+    '''
+    Tests if PMQuery separates input ids as found and not found
+    '''
+    query = core.PMQuery(ids=["4304AAAAA705","5055395"], database="PMC")
+    query.get_articles()
+    assert(query.found == set(["5055395"]))
+
+def test_query_notfound():
+    '''
+    Tests if PMQuery separates input ids as found and not found
+    '''
+    query = core.PMQuery(ids=["4304AAAAA705","5055395"], database="PMC")
+    query.get_articles()
+    assert(query.notfound == set(["4304AAAAA705"]))
+
 def test_sentence_separator():
     '''
     Tests if sentence separator works...

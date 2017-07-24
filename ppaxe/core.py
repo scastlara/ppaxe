@@ -25,7 +25,8 @@ class PMQuery(object):
         self.ids = ids
         self.database = database
         self.articles = list()
-        self.notfound = list()
+        self.found    = set()
+        self.notfound = set()
 
     def get_articles(self):
         '''
@@ -44,12 +45,17 @@ class PMQuery(object):
                 for article in articles:
                     pmid  = article.getElementsByTagName('article-id')[0].firstChild.nodeValue
                     pmcid = article.getElementsByTagName('article-id')[1].firstChild.nodeValue
+                    if self.database == "PMC":
+                        self.found.add(pmcid)
+                    elif self.database == "PUBMED":
+                        self.found.add(pmid)
                     body =  article.getElementsByTagName('body')
                     paragraphs = body[0].getElementsByTagName('p')
                     fulltext = list()
                     for par in paragraphs:
                         fulltext.append(" ".join(t.nodeValue.encode('utf-8') for t in par.childNodes if t.nodeType == t.TEXT_NODE))
                     self.articles.append(Article(pmid=pmid, pmcid=pmcid, fulltext="\n".join(fulltext)))
+                self.notfound = set(self.ids).difference(self.found)
             else:
                 PubMedQueryError("Can't connect to PMC...")
 
