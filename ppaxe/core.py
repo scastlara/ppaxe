@@ -6,8 +6,12 @@ import requests
 from xml.dom import minidom
 import ner
 import re
+from pycorenlp import StanfordCoreNLP
 
-NER_TAGGER = ner.SocketNER(host='localhost', port=9000)
+
+NLP = StanfordCoreNLP('http://localhost:9000')
+
+#NER_TAGGER = ner.SocketNER(host='localhost', port=9000)
 
 # CLASSES
 # ----------------------------------------------
@@ -38,7 +42,7 @@ class Article(object):
         self.fulltext  = None
         self.sentences = None
         self.genes     = None
-        self.tagged    = None
+        self.annotated = None
 
     def download_abstract(self):
         '''
@@ -95,9 +99,6 @@ class Article(object):
         else:
             text = self.abstract
 
-        if self.tagged:
-            text = self.tagged
-
         caps = "([A-Z])"
         prefixes = "(Mr|St|Mrs|Ms|Dr)[.]"
         digits = "([0-9])"
@@ -146,15 +147,15 @@ class Article(object):
         '''
         pass
 
-    def tag_proteins(self, source="fulltext"):
+    def annotate_sentences(self):
         '''
         Uses stanford parser to tag the proteins in the sentence
         '''
+        if not self.sentences:
+            self.extract_sentences()
         # Call SP
-        if source == "fulltext":
-            self.tagged = NER_TAGGER.tag_text(self.fulltext)
-        else:
-            self.tagged = NER_TAGGER.tag_text(self.abstract)
+        for sentence in self.sentences:
+            self.annotated = NLP.annotate(sentence,properties={'outputFormat':'json'})['sentences'][0]['tokens']
         # Now add annotated genes to self.genes...
 
 
