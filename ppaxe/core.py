@@ -8,7 +8,7 @@ from xml.dom import minidom
 import json
 import re
 from pycorenlp import StanfordCoreNLP
-
+import itertools
 
 NLP = StanfordCoreNLP('http://localhost:9000')
 
@@ -37,9 +37,6 @@ def pmid_2_pmc(identifiers):
         return list(pmcids)
     else:
         raise PubMedQueryError("Can't convert identifiers through Pubmed idconv tool.")
-
-
-
 
 # CLASSES
 # ----------------------------------------------
@@ -113,13 +110,14 @@ class Article(object):
         '''
         Required: PMID
         '''
-        self.pmid      = pmid
-        self.pmcid     = pmcid
-        self.abstract  = abstract
-        self.fulltext  = fulltext
-        self.sentences = None
-        self.genes     = None
-        self.annotated = None
+        self.pmid       = pmid
+        self.pmcid      = pmcid
+        self.abstract   = abstract
+        self.fulltext   = fulltext
+        self.candidates = list()
+        self.sentences  = list()
+        self.proteins   = list()
+        self.annotated  = list()
 
     def as_html(self):
         '''
@@ -201,30 +199,78 @@ class Article(object):
     def annotate_sentences(self):
         '''
         Uses stanford parser to tag the proteins in the sentence
+            each annotated sentence:
+                - index
+                - word
+                - lemma
+                - pos
+                - characterOffsetEnd
+                - originalText
+                - ner
         '''
         if not self.sentences:
             self.extract_sentences()
         # Call SP
         for sentence in self.sentences:
-            self.annotated = NLP.annotate(
-            sentence,
-            properties={'outputFormat':'json'}
-        )['sentences'][0]['tokens']
+            if not sentence.strip():
+                continue
+            annotated = json.loads(NLP.annotate(sentence))
+            self.annotated.append(annotated['sentences'][0]['tokens'])
         # Now add annotated genes to self.genes...
 
+    def get_candidates(self):
+        '''
+        Retrieves proteins and interaction candidates from the annotated Sentences
+        '''
+        if not self.annotated:
+            self.annotate_sentences()
+        # Get the proteins
+        prot_counter = 0
+        state        = 0
+        prot_list = list()
+        # Get the proteins
+        for sentence in self.annotated:
+            for token in sentence:
+                if token['ner'] == "P":
+                    state = 1
+                    if len(prot_list) - 1 < prot_counter :
+                        prot_list.append(list())
+                    prot_list[prot_counter].append(token['index'])
+                else:
+                    if state == 1:
+                        prot_counter += 1
+                        state = 0
+
+            # Create protein objects for sentence
+            prots_in_sentence = list()
+            for prot_pos in prot_list:
+                # Must substract 1 to token_idx because Stanford CoreNLP has indexes from 1-n, while
+                # python lists go from 0-n
+                protein_symbol = " ".join([sentence[token_idx - 1]['word'] for token_idx in prot_pos])
+                protein = Protein(
+                    symbol=protein_symbol,
+                    positions=prot_pos,
+                    sentence=sentence
+                )
+                self.proteins.append(protein)
+                prots_in_sentence.append(protein)
+            # Create candidates for sentence
+            for prot in itertools.combinations(prots_in_sentence, r=2):
+                self.candidates.append(InteractionCandidate(prot1=prot[0], prot2=prot[1]))
 
 # ----------------------------------------------
-class Gene(object):
+class Protein(object):
     '''
-    Class for genes in sentences
+    Class for protein in sentences
     '''
-    def __init__(self, symbol, positions):
+    def __init__(self, symbol, positions, sentence):
         # disambiguate first..?
         self.disambiguate()
-        self.symbol    = symbol
+        self.symbol = symbol
         self.positions = positions
-        self.synonym   = list()
-        self.count     = len(positions)
+        self.sentence = sentence
+        self.synonym = list()
+        self.count = len(positions)
 
     def disambiguate(self):
         '''
@@ -232,6 +278,22 @@ class Gene(object):
         (convert it to the approved symbol if possible)
         '''
         pass
+
+    def __str__(self):
+        return "%s found in positions %s" % (self.symbol, ":".join([ str(idx) for idx in self.positions ]))
+
+
+# ----------------------------------------------
+class InteractionCandidate(object):
+    '''
+    Class for interaction candidates in articles
+    '''
+    def __init__(self, prot1, prot2):
+        self.prot1 = prot1
+        self.prot2 = prot2
+
+    def __str__(self):
+        return "%s may interact with %s" % (self.prot1.symbol, self.prot2.symbol)
 
 
 # EXCEPTIONS

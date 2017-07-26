@@ -3,7 +3,8 @@
 Tests for the main classes of ppaxe
 '''
 from ppaxe import core
-
+from pycorenlp import StanfordCoreNLP
+import json
 
 def test_sentence_separator():
     '''
@@ -21,3 +22,57 @@ def test_sentence_separator():
     """)
     article.extract_sentences()
     assert(len(article.sentences) == 8)
+
+def test_stanford_corenlp_server():
+    '''
+    Tests connection to stanford corenlp server
+    '''
+    try:
+        nlp = StanfordCoreNLP('http://localhost:9000')
+        nlp.annotate("HOLA")
+        assert(1 == 1)
+    except:
+        assert("Connection error" == "StanfordCoreNLP")
+
+def test_annotation():
+    '''
+    Tests if Stanford coreNLP NER works
+    '''
+    text = "MAPK seems to interact with chloroacetate esterase"
+    nlp = StanfordCoreNLP('http://localhost:9000')
+    ner_list = list()
+    for token in json.loads(nlp.annotate(text))['sentences'][0]['tokens']:
+        ner_list.append(token['ner'])
+    assert("".join(ner_list) == "POOOOPP")
+
+def test_article_annotation():
+    '''
+    Tests if article annotation works
+    '''
+    article_text = """
+        MAPK seems to interact with chloroacetate esterase.
+        However, MAPK is a better target for peroxydase.
+        The thing is, Schmidtea mediterranea is a good model organism because reasons.
+        However, cryoglobulin is better.
+    """
+    prot_list = list()
+    article = core.Article(pmid="1234", fulltext=article_text)
+    article.annotate_sentences()
+    for sentence in article.annotated:
+        for token in sentence:
+            if token['ner'] == "P":
+                prot_list.append(token['word'])
+    assert(",".join(prot_list) == "MAPK,chloroacetate,esterase,MAPK,peroxydase,cryoglobulin")
+
+def test_get_proteins():
+    '''
+    Tests the retrieval of candidates
+    '''
+    text = "However, MAPK is a better target for chloroacetate esterase which is an essential protein for cryoglobulin."
+    article = core.Article(pmid="1234", fulltext=text)
+    article.annotate_sentences()
+    article.get_candidates()
+    assert(str(article.proteins[1]) == "chloroacetate esterase found in positions 9:10")
+
+
+test_get_proteins()
