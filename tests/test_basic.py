@@ -72,7 +72,4 @@ def test_get_proteins():
     article = core.Article(pmid="1234", fulltext=text)
     article.annotate_sentences()
     article.get_candidates()
-    assert(str(article.proteins[1]) == "chloroacetate esterase found in positions 9:10")
-
-
-test_get_proteins()
+    assert(str(article.candidates[0]) == "MAPK may interact with chloroacetate esterase")
