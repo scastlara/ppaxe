@@ -9,13 +9,16 @@ import json
 import re
 from pycorenlp import StanfordCoreNLP
 import itertools
+import numpy as np
+from bisect import bisect_left, bisect_right
+import math
 
 NLP = StanfordCoreNLP('http://localhost:9000')
 
 #NER_TAGGER = ner.SocketNER(host='localhost', port=9000)
 
 
-# CLASSES
+# FUNCTIONS
 # ----------------------------------------------
 def pmid_2_pmc(identifiers):
     '''
@@ -37,6 +40,36 @@ def pmid_2_pmc(identifiers):
         return list(pmcids)
     else:
         raise PubMedQueryError("Can't convert identifiers through Pubmed idconv tool.")
+
+def take_closest(mylist, mynumber):
+    """
+    Assumes mylist is sorted. Returns closest value to mynumber.
+    If two numbers are equally close, return the smallest number.
+    from: https://stackoverflow.com/questions/12141150/from-list-of-integers-get-number-closest-to-a-given-value
+    """
+    pos = bisect_left(mylist, mynumber)
+    if pos == 0:
+        return mylist[0]
+    if pos == len(mylist):
+        return mylist[-1]
+    before = mylist[pos - 1]
+    after = mylist[pos]
+    if after - mynumber < mynumber - before:
+        return after
+    else:
+        return before
+
+def take_farthest(mylist, mynumber):
+    """
+    Returns the farthest number in a sorted list to mynumber
+    """
+    distance_first = mylist[0]  - mynumber
+    distance_last  = mylist[-1] - mynumber
+    if math.fabs(distance_first) > math.fabs(distance_last):
+        return mylist[0]
+    else:
+        return mylist[-1]
+
 
 # CLASSES
 # ----------------------------------------------
@@ -284,16 +317,105 @@ class Protein(object):
 
 
 # ----------------------------------------------
+class Sentence(object):
+    '''
+    Class for sentences
+    '''
+
+# ----------------------------------------------
 class InteractionCandidate(object):
     '''
     Class for interaction candidates in articles
     '''
+    # This will be pre-calculated from the corpora.
+    # Now it is like this for testing and developing purposes
+    verb_scores = dict({
+        'interact': 3,
+        'activate': 2
+    })
     def __init__(self, prot1, prot2):
         self.prot1 = prot1
         self.prot2 = prot2
+        self.between_idxes = (prot1.positions[-1], prot2.positions[0] - 1)
+        self.features = list() # I will make it a numpy array in the future
+
+
+
+    def compute_features(self):
+        '''
+        Computes all the necessary features to predict if this InteractionCandidate
+        is a real interaction
+        '''
+        # Will call several private methods here
+        self.__token_distance()
+        self.__total_tokens()
+        self.__verb_features()
+
+    def __token_distance(self):
+        '''
+        Token distance from protein A to protein B.
+        '''
+        subsentence = self.prot1.sentence[self.between_idxes[0]:self.between_idxes[1]]
+        self.features.append(len(subsentence))
+
+    def __total_tokens(self):
+        '''
+        Total tokens in sentence
+        '''
+        self.features.append(len(self.prot1.sentence))
+
+    def __verb_distances(self, pidx, vidxes):
+        '''
+        Computes the three verb distances
+        '''
+        closest_verb_idx  = take_closest(vidxes, pidx)
+        farthest_verb_idx = take_farthest(vidxes, pidx)
+
+        # Now compute token distance from indexes
+        closest_distance  = math.fabs(closest_verb_idx -  pidx)
+        farthest_distance = math.fabs(farthest_verb_idx -  pidx)
+        return (closest_distance, farthest_distance)
+
+
+    def __verb_features(self):
+        '''
+        Number of verbs between proteins
+        and the two verb scores
+        '''
+        numverbs = dict({
+            'VB': 0,  'VBD': 0, 'VBG': 0,
+            'VBN': 0, 'VBP': 0, 'VBZ': 0
+        })
+        maxscore   = 0
+        totalscore = 0
+        verb_idxes = list()
+        for token in self.prot1.sentence[self.between_idxes[0]:self.between_idxes[1]]:
+            if re.match('VB[DGNPZ]?', token['pos']):
+                numverbs[token['pos']]  += 1
+                verb_idxes.append(token['index'])
+                if token['lemma'] in InteractionCandidate.verb_scores:
+                    totalscore +=  InteractionCandidate.verb_scores[token['lemma']]
+                    if InteractionCandidate.verb_scores[token['lemma']] > maxscore:
+                        maxscore = InteractionCandidate.verb_scores[token['lemma']]
+
+        # Compute verb distances for the two proteins
+        (cl1, far1) = self.__verb_distances(self.prot1.positions[-1], verb_idxes)
+        (cl2, far2) = self.__verb_distances(self.prot2.positions[-1], verb_idxes)
+
+        self.features.extend(
+            [
+                numverbs['VB'],  numverbs['VBD'],
+                numverbs['VBG'], numverbs['VBN'],
+                numverbs['VBP'], numverbs['VBZ'],
+                maxscore, totalscore,
+                int(cl1), int(far1),
+                int(cl2), int(far2)
+            ]
+        )
+
 
     def __str__(self):
-        return "%s may interact with %s" % (self.prot1.symbol, self.prot2.symbol)
+        return "[%s] may interact with [%s]" % (self.prot1.symbol, self.prot2.symbol)
 
 
 # EXCEPTIONS

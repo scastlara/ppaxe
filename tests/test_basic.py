@@ -72,4 +72,42 @@ def test_get_proteins():
     article = core.Article(pmid="1234", fulltext=text)
     article.annotate_sentences()
     article.get_candidates()
-    assert(str(article.candidates[0]) == "MAPK may interact with chloroacetate esterase")
+    assert(str(article.candidates[0]) == "[MAPK] may interact with [chloroacetate esterase]")
+
+def test_token_distance():
+    '''
+    Tests token distance feature
+    '''
+    text = "The protein MAPK interacts directly with cryoglobulin which is very interesting."
+    article = core.Article(pmid="1234", fulltext=text)
+    article.annotate_sentences()
+    article.get_candidates()
+    for candidate in article.candidates:
+        candidate.compute_features()
+        assert(candidate.features[0] == 3)
+
+def test_total_tokens():
+    '''
+    Tests total tokens
+    '''
+    text = "The protein MAPK interacts directly with cryoglobulin which is very interesting."
+    article = core.Article(pmid="1234", fulltext=text)
+    article.annotate_sentences()
+    article.get_candidates()
+    for candidate in article.candidates:
+        candidate.compute_features()
+        assert(candidate.features[1] == 12)
+
+def test_verb_features():
+    '''
+    Tests total number of verbs between proteins
+    '''
+    text = "The protein MAPK is interacting and activating directly with cryoglobulin which is very interesting."
+    article = core.Article(pmid="1234", fulltext=text)
+    article.annotate_sentences()
+    article.get_candidates()
+    for candidate in article.candidates:
+        candidate.compute_features()
+        # Check if it has detected one VBG (interacting) verb and another VBZ (is) verb
+        # and verb scores (for now 3 and 5)
+        assert(candidate.features[2:14] == [0, 0, 2, 0, 0, 1, 3, 5, 1, 4, 3, 6])
