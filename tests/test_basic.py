@@ -111,3 +111,21 @@ def test_verb_features():
         # Check if it has detected one VBG (interacting) verb and another VBZ (is) verb
         # and verb scores (for now 3 and 5)
         assert(candidate.features[2:14] == [0, 0, 2, 0, 0, 1, 3, 5, 1, 4, 3, 6])
+
+
+
+def test_verb_features_sameside():
+    '''
+    Tests total number of verbs between proteins when proteins are both in the Subject
+    '''
+    text = "The protein MAPK and cryoglobulin are interacting and activating nothing."
+    article = core.Article(pmid="1234", fulltext=text)
+    article.annotate_sentences()
+    article.get_candidates()
+    for candidate in article.candidates:
+        candidate.compute_features()
+        # Check if it has detected one VBG (interacting) verb and another VBZ (is) verb
+        # and verb scores (for now 3 and 5)
+        print "|%s\n|%s\n--\n" % (candidate, candidate.features)
+
+test_verb_features_sameside()

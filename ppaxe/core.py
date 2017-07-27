@@ -329,18 +329,30 @@ class InteractionCandidate(object):
     FEATURES:
         1. Token Distance
         2. Tokens in Sentence
-        3. VB token count
-        4. VBD token count
-        5. VBG token count
-        6. VBN token count
-        7. VBP token count
-        8. VBZ token count
-        9. Max verb Score
-        10. Total verb score (sum of scores)
-        11. Distance from A to closest verb
-        12. Distance from A to farthest verb
-        13. Distance from B to closest verb
-        14. Distance from B to farthest verb
+        3. VB token count (only verbs between A and B)
+        4. VBD token count (only verbs between A and B)
+        5. VBG token count (only verbs between A and B)
+        6. VBN token count (only verbs between A and B)
+        7. VBP token count (only verbs between A and B)
+        8. VBZ token count (only verbs between A and B)
+        9. Max verb Score (only verbs between A and B)
+        10. Total verb score (sum of scores) (only verbs between A and B)
+        11. Distance from A to closest verb (only verbs between A and B)
+        12. Distance from A to farthest verb (only verbs between A and B)
+        13. Distance from B to closest verb (only verbs between A and B)
+        14. Distance from B to farthest verb (only verbs between A and B)
+        15. VB token count (all verbs in sentence)
+        16. VBD token count (all verbs in sentence)
+        17. VBG token count (all verbs in sentence)
+        18. VBN token count (all verbs in sentence)
+        19. VBP token count (all verbs in sentence)
+        20. VBZ token count (all verbs in sentence)
+        21. Max verb Score (all verbs in sentence)
+        22. Total verb score (sum of scores) (all verbs in sentence)
+        23. Distance from A to closest verb (all verbs in sentence)
+        24. Distance from A to farthest verb (all verbs in sentence)
+        25. Distance from B to closest verb (all verbs in sentence)
+        26. Distance from B to farthest verb (all verbs in sentence)
         ...
     '''
     # This will be pre-calculated from the corpora.
@@ -355,8 +367,6 @@ class InteractionCandidate(object):
         self.between_idxes = (prot1.positions[-1], prot2.positions[0] - 1)
         self.features = list() # I will make it a numpy array in the future
 
-
-
     def compute_features(self):
         '''
         Computes all the necessary features to predict if this InteractionCandidate
@@ -365,7 +375,8 @@ class InteractionCandidate(object):
         # Will call several private methods here
         self.__token_distance()
         self.__total_tokens()
-        self.__verb_features()
+        self.__verb_features("between")
+        self.__verb_features("all")
 
     def __token_distance(self):
         '''
@@ -393,10 +404,11 @@ class InteractionCandidate(object):
         return (closest_distance, farthest_distance)
 
 
-    def __verb_features(self):
+    def __verb_features(self, flag):
         '''
-        Number of verbs between proteins
-        and the two verb scores
+        Computes all the verb features for the candidate.
+        It works for all the verbs in the sentence (flag=all)
+        and for only the verbs between protein 1 and protein 2 (flag=between)
         '''
         numverbs = dict({
             'VB': 0,  'VBD': 0, 'VBG': 0,
@@ -405,8 +417,17 @@ class InteractionCandidate(object):
         maxscore   = 0
         totalscore = 0
         verb_idxes = list()
-        for token in self.prot1.sentence[self.between_idxes[0]:self.between_idxes[1]]:
+        someverb_flag = False
+        tokens_to_work = list()
+
+        if flag == "between":
+            tokens_to_work = self.prot1.sentence[self.between_idxes[0]:self.between_idxes[1]]
+        else:
+            tokens_to_work = self.prot1.sentence
+
+        for token in tokens_to_work:
             if re.match('VB[DGNPZ]?', token['pos']):
+                someverb_flag = True
                 numverbs[token['pos']]  += 1
                 verb_idxes.append(token['index'])
                 if token['lemma'] in InteractionCandidate.verb_scores:
@@ -415,8 +436,10 @@ class InteractionCandidate(object):
                         maxscore = InteractionCandidate.verb_scores[token['lemma']]
 
         # Compute verb distances for the two proteins
-        (cl1, far1) = self.__verb_distances(self.prot1.positions[-1], verb_idxes)
-        (cl2, far2) = self.__verb_distances(self.prot2.positions[-1], verb_idxes)
+        (cl1, far1, cl2, far2) = (0,0,0,0)
+        if someverb_flag is True:
+            (cl1, far1) = self.__verb_distances(self.prot1.positions[-1], verb_idxes)
+            (cl2, far2) = self.__verb_distances(self.prot2.positions[-1], verb_idxes)
 
         self.features.extend(
             [
