@@ -335,11 +335,12 @@ class InteractionCandidate(object):
         6. VBN token count
         7. VBP token count
         8. VBZ token count
-        9. Verb Score
-        10. Distance from A to closest verb
-        11. Distance from A to farthest verb
-        12. Distance from B to closest verb
-        13. Distance from B to farthest verb
+        9. Max verb Score
+        10. Total verb score (sum of scores)
+        11. Distance from A to closest verb
+        12. Distance from A to farthest verb
+        13. Distance from B to closest verb
+        14. Distance from B to farthest verb
         ...
     '''
     # This will be pre-calculated from the corpora.
