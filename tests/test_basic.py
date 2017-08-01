@@ -113,8 +113,34 @@ def test_verb_features():
         assert(candidate.features[2:14] == [0, 0, 2, 0, 0, 1, 3, 5, 1, 4, 3, 6])
 
 def test_candidates_multiple_sentences():
+    '''
+    Tests if multiple sentences in one string work
+    '''
     text = "In patients with a complete response to PROT4  , the levels of PROT2  were higher at 24 weeks following PROT4  treatment than that of pre - treatment ( P = 0.04 ) , and the levels of PROT3  decreased markedly at 12 and 24 weeks ( P = 0.02 , 0.03 , respectively ) . mRNA expression positively correlated with the level of PROT55 / Th2 type cytokines in the PROT99 ."
     article = core.Article(pmid="1234", fulltext=text)
     article.annotate_sentences()
     article.get_candidates()
     assert(article.candidates[-1].prot2.symbol == "PROT99")
+
+
+def test_get_pos_annotation():
+    '''
+    Tests the method get_token_pos()
+    '''
+    text = "The protein MAPK14 seems to interact with MAPK12."
+    article = core.Article(pmid="1234", fulltext=text)
+    article.annotate_sentences()
+    article.get_candidates()
+    assert(article.candidates[0]._InteractionCandidate__get_token_pos(mode="between") == "NN,VBZ,TO,VB,IN,NN")
+
+def get_pos_count():
+    '''
+    Tests pos count feature
+    '''
+    text = "The protein MAPK14 seems to interact with MAPK12."
+    article = core.Article(pmid="1234", fulltext=text)
+    article.annotate_sentences()
+    article.get_candidates()
+    for candidate in article.candidates:
+        candidate.compute_features()
+        assert(candidate.features[85] == 1)

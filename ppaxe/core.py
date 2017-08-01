@@ -381,6 +381,8 @@ class InteractionCandidate(object):
         self.__total_tokens()
         self.__verb_features("between")
         self.__verb_features("all")
+        self.__pos_features("between")
+        self.__pos_features("all")
 
     def __token_distance(self):
         '''
@@ -395,21 +397,52 @@ class InteractionCandidate(object):
         '''
         self.features.append(len(self.prot1.sentence))
 
-    def get_token_pos(self, x, y):
+    def __get_token_pos(self, mode="all"):
         '''
         Returns a string with the token POS annotations for coordinates 'from'-'to'
         '''
-        if not x:
-            x = 1
-            y = len(self.annotated)
+        init_coord  = None
+        final_coord = None
+        if mode == "all":
+            '''
+            Retrieve POS for all the sentence
+            '''
+            init_coord  = 0
+            final_coord = len(self.prot1.sentence)
+        else:
+            '''
+            Retrieve POS between candidate genes
+            '''
+            init_coord  = self.between_idxes[0] - 1
+            final_coord = self.between_idxes[1] + 1
 
-        pos_str = str()
-        subsentence = self.annotated[x:y]
+        pos_str = list()
+        subsentence = self.prot1.sentence[init_coord:final_coord]
         for token in subsentence:
-            pos_str += token['pos']
+            pos_str.append(token['pos'])
+        return ",".join(pos_str)
 
-        print(pos_str)
-        return pos_str
+    def __pos_features(self, mode):
+        '''
+        Gets counts of POS tags and adds those features
+        '''
+        pos_counts = {
+            "CC": 0, "LS": 0, "MD": 0,
+            "NN": 0, "NNS": 0, "NNP": 0,
+            "NNPS": 0, "PDT": 0, "POS": 0,
+            "PRP": 0, "PRP$": 0, "RB": 0,
+            "RBR": 0, "RBS": 0, "RP": 0,
+            "SYM": 0, "TO": 0, "UH": 0,
+            "VB": 0, "VBD": 0, "VBG": 0,
+            "VBN": 0, "VBP": 0, "VBZ": 0,
+            "WDT": 0, "WP": 0, "WP$": 0,
+            "WRB": 0, "IN": 0, "DT": 0, ".": 0, "JJ" :0
+        }
+        for pos in self.__get_token_pos(mode=mode).split(","):
+            pos_counts[pos] += 1
+
+        for postag in sorted(pos_counts):
+            self.features.append(pos_counts[postag])
 
 
     def __verb_distances(self, pidx, vidxes):
