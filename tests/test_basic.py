@@ -110,7 +110,7 @@ def test_verb_features():
         candidate.compute_features()
         # Check if it has detected one VBG (interacting) verb and another VBZ (is) verb
         # and verb scores (for now 3 and 5)
-        assert(candidate.features[2:14] == [0, 0, 2, 0, 0, 1, 3, 5, 1, 4, 3, 6])
+        assert(candidate.features[2:14] == [0, 0, 2, 0, 0, 1, 4, 7, 1, 4, 3, 6])
 
 def test_candidates_multiple_sentences():
     '''
@@ -144,3 +144,15 @@ def get_pos_count():
     for candidate in article.candidates:
         candidate.compute_features()
         assert(candidate.features[85] == 1)
+
+def get_pos_aheadbehind():
+    '''
+    Tests pos ahead and behind one and two positions from proteins/genes
+    '''
+    text = "The protein MAPK14 seems to interact with MAPK12 somewhere."
+    article = core.Article(pmid="1234", fulltext=text)
+    article.annotate_sentences()
+    article.get_candidates()
+    for candidate in article.candidates:
+        candidate.compute_features()
+        assert(candidate.features[436] == 1)

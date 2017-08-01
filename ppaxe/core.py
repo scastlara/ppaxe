@@ -362,8 +362,17 @@ class InteractionCandidate(object):
     # This will be pre-calculated from the corpora.
     # Now it is like this for testing and developing purposes
     verb_scores = dict({
-        'interact': 3,
-        'activate': 2
+        "acetylate":1, "acylate":1, "amidate":1, "brominate":1, "biotinylate":1,
+        "carboxylate":1, "cysteinylate":1, "farnesylate":1, "formylate":1, "hydroxilate":1,
+        "hydroxylate":1, "methylate":1, "demethylate":1, "myristoylate":1, "myristylate":1,
+        "palmitoylate":1, "palmitylate":1, "phosphorylate":1, "dephosphorylate":1, "pyruvate":1,
+        "nitrosylate":1, "sumoylate":1, "ubiquitinylate":1, "ubiquitinate":1, "dissociate":1,
+        "assemble":1, "attach":1, "bind":2, "complex":1, "contact":1, "couple":1, "multimerize":1,
+        "multimerise":1, "dimerize":1, "dimerise":1, "interact":4, "precipitate":1, "regulate":1,
+        "inhibit":1, "activate":3, "downregulate":2, "down-regulate":2, "suppress":2, "upregulate":2,
+        "up-regulate":1, "block":1, "inactivate":1, "induce":1, "modify":1, "overexpress":1, "promote":1,
+        "stimulate":1, "substitute":1, "catalyze":1, "cleave":1, "conjugate":1, "disassemble":1,
+        "discharge":1, "mediate":1, "modulate":1, "repress":1, "transactivate":1
     })
     def __init__(self, prot1, prot2):
         self.prot1 = prot1
@@ -383,6 +392,14 @@ class InteractionCandidate(object):
         self.__verb_features("all")
         self.__pos_features("between")
         self.__pos_features("all")
+        self.__pos_features("ahead-1-1")
+        self.__pos_features("ahead-1-2")
+        self.__pos_features("ahead-2-1")
+        self.__pos_features("ahead-2-2")
+        self.__pos_features("behind-1-1")
+        self.__pos_features("behind-1-2")
+        self.__pos_features("behind-2-1")
+        self.__pos_features("behind-2-2")
 
     def __token_distance(self):
         '''
@@ -422,7 +439,7 @@ class InteractionCandidate(object):
             pos_str.append(token['pos'])
         return ",".join(pos_str)
 
-    def __pos_features(self, mode):
+    def __pos_features(self, mode, coord=None):
         '''
         Gets counts of POS tags and adds those features
         '''
@@ -436,11 +453,38 @@ class InteractionCandidate(object):
             "VB": 0, "VBD": 0, "VBG": 0,
             "VBN": 0, "VBP": 0, "VBZ": 0,
             "WDT": 0, "WP": 0, "WP$": 0,
-            "WRB": 0, "IN": 0, "DT": 0, ".": 0, "JJ" :0
+            "WRB": 0, "IN": 0, "DT": 0, ".": 0,
+            "JJ" :0, "CD": 0, "": 0, "-LRB-": 0,
+            "-RRB-": 0, "JJR": 0, ":": 0, "FW": 0,
+            'JJS': 0, "EX": 0, "''": 0
         }
-        for pos in self.__get_token_pos(mode=mode).split(","):
-            pos_counts[pos] += 1
 
+        if mode == "all" or mode == "between":
+            for pos in self.__get_token_pos(mode=mode).split(","):
+                pos_counts[pos] += 1
+        else:
+            if mode == "ahead-1-1":
+                idx = self.between_idxes[0]
+            elif mode == "ahead-1-2":
+                idx = self.between_idxes[0] + 1
+            elif mode == "behind-1-1":
+                idx = self.between_idxes[0] - 2
+            elif mode == "behind-1-2":
+                idx = self.between_idxes[0] - 3
+            elif mode == "ahead-2-1":
+                idx = self.between_idxes[1] + 1
+            elif mode == "ahead-2-2":
+                idx = self.between_idxes[1] + 2
+            elif mode == "behind-2-1":
+                idx = self.between_idxes[1] - 1
+            elif mode == "behind-2-2":
+                idx = self.between_idxes[1] - 2
+
+            try:
+                pos = self.prot1.sentence[idx]['pos']
+                pos_counts[pos] += 1
+            except IndexError:
+                pass
         for postag in sorted(pos_counts):
             self.features.append(pos_counts[postag])
 
