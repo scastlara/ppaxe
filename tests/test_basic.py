@@ -144,15 +144,3 @@ def get_pos_count():
     for candidate in article.candidates:
         candidate.compute_features()
         assert(candidate.features[85] == 1)
-
-def get_pos_aheadbehind():
-    '''
-    Tests pos ahead and behind one and two positions from proteins/genes
-    '''
-    text = "The protein MAPK14 seems to interact with MAPK12 somewhere."
-    article = core.Article(pmid="1234", fulltext=text)
-    article.annotate_sentences()
-    article.get_candidates()
-    for candidate in article.candidates:
-        candidate.compute_features()
-        assert(candidate.features[436] == 1)

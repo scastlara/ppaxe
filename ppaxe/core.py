@@ -392,14 +392,6 @@ class InteractionCandidate(object):
         self.__verb_features("all")
         self.__pos_features("between")
         self.__pos_features("all")
-        self.__pos_features("ahead-1-1")
-        self.__pos_features("ahead-1-2")
-        self.__pos_features("ahead-2-1")
-        self.__pos_features("ahead-2-2")
-        self.__pos_features("behind-1-1")
-        self.__pos_features("behind-1-2")
-        self.__pos_features("behind-2-1")
-        self.__pos_features("behind-2-2")
 
     def __token_distance(self):
         '''
@@ -456,35 +448,12 @@ class InteractionCandidate(object):
             "WRB": 0, "IN": 0, "DT": 0, ".": 0,
             "JJ" :0, "CD": 0, "": 0, "-LRB-": 0,
             "-RRB-": 0, "JJR": 0, ":": 0, "FW": 0,
-            'JJS': 0, "EX": 0, "''": 0
+            'JJS': 0, "EX": 0, "''": 0, ",":0
         }
 
         if mode == "all" or mode == "between":
             for pos in self.__get_token_pos(mode=mode).split(","):
                 pos_counts[pos] += 1
-        else:
-            if mode == "ahead-1-1":
-                idx = self.between_idxes[0]
-            elif mode == "ahead-1-2":
-                idx = self.between_idxes[0] + 1
-            elif mode == "behind-1-1":
-                idx = self.between_idxes[0] - 2
-            elif mode == "behind-1-2":
-                idx = self.between_idxes[0] - 3
-            elif mode == "ahead-2-1":
-                idx = self.between_idxes[1] + 1
-            elif mode == "ahead-2-2":
-                idx = self.between_idxes[1] + 2
-            elif mode == "behind-2-1":
-                idx = self.between_idxes[1] - 1
-            elif mode == "behind-2-2":
-                idx = self.between_idxes[1] - 2
-
-            try:
-                pos = self.prot1.sentence[idx]['pos']
-                pos_counts[pos] += 1
-            except IndexError:
-                pass
         for postag in sorted(pos_counts):
             self.features.append(pos_counts[postag])
 
