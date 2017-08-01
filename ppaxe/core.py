@@ -12,7 +12,7 @@ import itertools
 import numpy as np
 from bisect import bisect_left, bisect_right
 import math
-
+import sys
 NLP = StanfordCoreNLP('http://localhost:9000')
 
 #NER_TAGGER = ner.SocketNER(host='localhost', port=9000)
@@ -70,6 +70,11 @@ def take_farthest(mylist, mynumber):
     else:
         return mylist[-1]
 
+def json_to_sentence(json):
+    '''
+    Takes a sentence in json dict an returns a string
+    '''
+    pass
 
 # CLASSES
 # ----------------------------------------------
@@ -258,11 +263,11 @@ class Article(object):
         if not self.annotated:
             self.annotate_sentences()
         # Get the proteins
-        prot_counter = 0
-        state        = 0
-        prot_list = list()
-        # Get the proteins
         for sentence in self.annotated:
+            # Get the proteins
+            prot_counter = 0
+            state        = 0
+            prot_list = list()
             for token in sentence:
                 if token['ner'] == "P":
                     state = 1
@@ -273,7 +278,6 @@ class Article(object):
                     if state == 1:
                         prot_counter += 1
                         state = 0
-
             # Create protein objects for sentence
             prots_in_sentence = list()
             for prot_pos in prot_list:
@@ -390,6 +394,23 @@ class InteractionCandidate(object):
         Total tokens in sentence
         '''
         self.features.append(len(self.prot1.sentence))
+
+    def get_token_pos(self, x, y):
+        '''
+        Returns a string with the token POS annotations for coordinates 'from'-'to'
+        '''
+        if not x:
+            x = 1
+            y = len(self.annotated)
+
+        pos_str = str()
+        subsentence = self.annotated[x:y]
+        for token in subsentence:
+            pos_str += token['pos']
+
+        print(pos_str)
+        return pos_str
+
 
     def __verb_distances(self, pidx, vidxes):
         '''
