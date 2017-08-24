@@ -55,11 +55,13 @@ def test_article_annotation():
         The thing is, Schmidtea mediterranea is a good model organism because reasons.
         However, cryoglobulin is better.
     """
-    prot_list = list()
     article = core.Article(pmid="1234", fulltext=article_text)
-    article.annotate_sentences()
-    for sentence in article.annotated:
-        for token in sentence:
+    prot_list = list()
+    #article.annotate_sentences()
+    article.extract_sentences()
+    for sentence in article.sentences:
+        sentence.annotate()
+        for token in sentence.tokens:
             if token['ner'] == "P":
                 prot_list.append(token['word'])
     assert(",".join(prot_list) == "MAPK,chloroacetate,esterase,MAPK,peroxydase,cryoglobulin")
@@ -70,9 +72,12 @@ def test_get_proteins():
     '''
     text = "However, MAPK is a better target for chloroacetate esterase which is an essential protein for cryoglobulin."
     article = core.Article(pmid="1234", fulltext=text)
-    article.annotate_sentences()
-    article.get_candidates()
-    assert(str(article.candidates[0]) == "[MAPK] may interact with [chloroacetate esterase]")
+    article.extract_sentences()
+    for sentence in article.sentences:
+        sentence.annotate()
+        sentence.get_candidates()
+        candidate = str(sentence.candidates[0])
+        assert(candidate == "[MAPK] may interact with [chloroacetate esterase]")
 
 def test_token_distance():
     '''
@@ -80,9 +85,11 @@ def test_token_distance():
     '''
     text = "The protein MAPK interacts directly with cryoglobulin which is very interesting."
     article = core.Article(pmid="1234", fulltext=text)
-    article.annotate_sentences()
-    article.get_candidates()
-    for candidate in article.candidates:
+    article.extract_sentences()
+    for sentence in article.sentences:
+        sentence.annotate()
+        sentence.get_candidates()
+        candidate = sentence.candidates[0]
         candidate.compute_features()
         assert(candidate.features[0] == 3)
 
@@ -92,11 +99,13 @@ def test_total_tokens():
     '''
     text = "The protein MAPK interacts directly with cryoglobulin which is very interesting."
     article = core.Article(pmid="1234", fulltext=text)
-    article.annotate_sentences()
-    article.get_candidates()
-    for candidate in article.candidates:
-        candidate.compute_features()
-        assert(candidate.features[1] == 12)
+    article.extract_sentences()
+    for sentence in article.sentences:
+        sentence.annotate()
+        sentence.get_candidates()
+        for candidate in sentence.candidates:
+            candidate.compute_features()
+            assert(candidate.features[1] == 12)
 
 def test_verb_features():
     '''
@@ -104,13 +113,15 @@ def test_verb_features():
     '''
     text = "The protein MAPK is interacting and activating directly with cryoglobulin which is very interesting."
     article = core.Article(pmid="1234", fulltext=text)
-    article.annotate_sentences()
-    article.get_candidates()
-    for candidate in article.candidates:
-        candidate.compute_features()
-        # Check if it has detected one VBG (interacting) verb and another VBZ (is) verb
-        # and verb scores (for now 3 and 5)
-        assert(candidate.features[2:14] == [0, 0, 2, 0, 0, 1, 4, 7, 1, 4, 3, 6])
+    article.extract_sentences()
+    for sentence in article.sentences:
+        sentence.annotate()
+        sentence.get_candidates()
+        for candidate in sentence.candidates:
+            candidate.compute_features()
+            # Check if it has detected one VBG (interacting) verb and another VBZ (is) verb
+            # and verb scores (for now 3 and 5)
+            assert(candidate.features[2:14] == [0, 0, 2, 0, 0, 1, 4, 7, 1, 4, 3, 6])
 
 def test_candidates_multiple_sentences():
     '''
@@ -118,9 +129,12 @@ def test_candidates_multiple_sentences():
     '''
     text = "In patients with a complete response to PROT4  , the levels of PROT2  were higher at 24 weeks following PROT4  treatment than that of pre - treatment ( P = 0.04 ) , and the levels of PROT3  decreased markedly at 12 and 24 weeks ( P = 0.02 , 0.03 , respectively ) . mRNA expression positively correlated with the level of PROT55 / Th2 type cytokines in the PROT99 ."
     article = core.Article(pmid="1234", fulltext=text)
-    article.annotate_sentences()
-    article.get_candidates()
-    assert(article.candidates[-1].prot2.symbol == "PROT99")
+    article.extract_sentences()
+    total_candidates = list()
+    for sentence in article.sentences:
+        sentence.get_candidates()
+        total_candidates.extend(sentence.candidates)
+    assert(total_candidates[-1].prot2.symbol == "PROT99")
 
 
 def test_get_pos_annotation():
@@ -129,9 +143,11 @@ def test_get_pos_annotation():
     '''
     text = "The protein MAPK14 seems to interact with MAPK12."
     article = core.Article(pmid="1234", fulltext=text)
-    article.annotate_sentences()
-    article.get_candidates()
-    assert(article.candidates[0]._InteractionCandidate__get_token_pos(mode="between") == "NN,VBZ,TO,VB,IN,NN")
+    article.extract_sentences()
+    for sentence in article.sentences:
+        sentence.annotate()
+        sentence.get_candidates()
+        assert(sentence.candidates[0]._InteractionCandidate__get_token_pos(mode="between") == "NN,VBZ,TO,VB,IN,NN")
 
 def get_pos_count():
     '''
@@ -139,8 +155,10 @@ def get_pos_count():
     '''
     text = "The protein MAPK14 seems to interact with MAPK12."
     article = core.Article(pmid="1234", fulltext=text)
-    article.annotate_sentences()
-    article.get_candidates()
-    for candidate in article.candidates:
-        candidate.compute_features()
-        assert(candidate.features[85] == 1)
+    article.extract_sentences()
+    for sentence in article.sentences:
+        sentence.annotate()
+        sentence.get_candidates()
+        for candidate in sentence.candidates:
+            candidate.compute_features()
+            assert(candidate.features[85] == 1)

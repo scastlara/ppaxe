@@ -152,10 +152,7 @@ class Article(object):
         self.pmcid      = pmcid
         self.abstract   = abstract
         self.fulltext   = fulltext
-        self.candidates = list()
         self.sentences  = list()
-        self.proteins   = list()
-        self.annotated  = list()
 
     def as_html(self):
         '''
@@ -219,7 +216,11 @@ class Article(object):
         sentences = text.split("<stop>")
         #sentences = sentences[:-1]
         sentences = [s.strip() for s in sentences]
-        self.sentences = sentences
+        #print(sentences)
+        for sentence in sentences:
+            if not sentence.strip():
+                continue
+            self.sentences.append(Sentence(originaltext=sentence))
 
     def count_genes(self):
         '''
@@ -234,66 +235,7 @@ class Article(object):
         '''
         pass
 
-    def annotate_sentences(self):
-        '''
-        Uses stanford parser to tag the proteins in the sentence
-            each annotated sentence:
-                - index
-                - word
-                - lemma
-                - pos
-                - characterOffsetEnd
-                - originalText
-                - ner
-        '''
-        if not self.sentences:
-            self.extract_sentences()
-        # Call SP
-        for sentence in self.sentences:
-            if not sentence.strip():
-                continue
-            annotated = json.loads(NLP.annotate(sentence))
-            self.annotated.append(annotated['sentences'][0]['tokens'])
-        # Now add annotated genes to self.genes...
 
-    def get_candidates(self):
-        '''
-        Retrieves proteins and interaction candidates from the annotated Sentences
-        '''
-        if not self.annotated:
-            self.annotate_sentences()
-        # Get the proteins
-        for sentence in self.annotated:
-            # Get the proteins
-            prot_counter = 0
-            state        = 0
-            prot_list = list()
-            for token in sentence:
-                if token['ner'] == "P":
-                    state = 1
-                    if len(prot_list) - 1 < prot_counter :
-                        prot_list.append(list())
-                    prot_list[prot_counter].append(token['index'])
-                else:
-                    if state == 1:
-                        prot_counter += 1
-                        state = 0
-            # Create protein objects for sentence
-            prots_in_sentence = list()
-            for prot_pos in prot_list:
-                # Must substract 1 to token_idx because Stanford CoreNLP has indexes from 1-n, while
-                # python lists go from 0-n
-                protein_symbol = " ".join([sentence[token_idx - 1]['word'] for token_idx in prot_pos])
-                protein = Protein(
-                    symbol=protein_symbol,
-                    positions=prot_pos,
-                    sentence=sentence
-                )
-                self.proteins.append(protein)
-                prots_in_sentence.append(protein)
-            # Create candidates for sentence
-            for prot in itertools.combinations(prots_in_sentence, r=2):
-                self.candidates.append(InteractionCandidate(prot1=prot[0], prot2=prot[1]))
 
 # ----------------------------------------------
 class Protein(object):
@@ -325,6 +267,65 @@ class Sentence(object):
     '''
     Class for sentences
     '''
+    def __init__(self, originaltext):
+        self.originaltext = originaltext
+        self.tokens       = list()
+        self.tree         = list()
+        self.candidates   = list()
+        self.proteins     = list()
+
+    def annotate(self):
+        '''
+        Annotates the genes/proteins in the sentence
+        '''
+        if not self.originaltext.strip():
+            self.tokens = ""
+        annotated = json.loads(NLP.annotate(self.originaltext))
+        #print(annotated)
+        if annotated['sentences']:
+            self.tokens = annotated['sentences'][0]['tokens']
+
+    def get_candidates(self):
+        '''
+        Gets interaction candidates candidates for sentence
+        '''
+        if not self.tokens:
+            self.annotate()
+        # Get the proteins
+        # Get the proteins
+        prot_counter = 0
+        state        = 0
+        prot_list = list()
+        for token in self.tokens:
+            if token['ner'] == "P":
+                state = 1
+                if len(prot_list) - 1 < prot_counter :
+                    prot_list.append(list())
+                prot_list[prot_counter].append(token['index'])
+            else:
+                if state == 1:
+                    prot_counter += 1
+                    state = 0
+        # Create protein objects for sentence
+        prots_in_sentence = list()
+        for prot_pos in prot_list:
+            # Must substract 1 to token_idx because Stanford CoreNLP has indexes from 1-n, while
+            # python lists go from 0-n
+            protein_symbol = " ".join([self.tokens[token_idx - 1]['word'] for token_idx in prot_pos])
+            protein = Protein(
+                symbol=protein_symbol,
+                positions=prot_pos,
+                sentence=self
+            )
+            self.proteins.append(protein)
+            prots_in_sentence.append(protein)
+        # Create candidates for sentence
+        for prot in itertools.combinations(prots_in_sentence, r=2):
+            self.candidates.append(InteractionCandidate(prot1=prot[0], prot2=prot[1]))
+
+    def __str__(self):
+        return self.originaltext
+
 
 # ----------------------------------------------
 class InteractionCandidate(object):
@@ -397,14 +398,14 @@ class InteractionCandidate(object):
         '''
         Token distance from protein A to protein B.
         '''
-        subsentence = self.prot1.sentence[self.between_idxes[0]:self.between_idxes[1]]
+        subsentence = self.prot1.sentence.tokens[self.between_idxes[0]:self.between_idxes[1]]
         self.features.append(len(subsentence))
 
     def __total_tokens(self):
         '''
         Total tokens in sentence
         '''
-        self.features.append(len(self.prot1.sentence))
+        self.features.append(len(self.prot1.sentence.tokens))
 
     def __get_token_pos(self, mode="all"):
         '''
@@ -417,7 +418,7 @@ class InteractionCandidate(object):
             Retrieve POS for all the sentence
             '''
             init_coord  = 0
-            final_coord = len(self.prot1.sentence)
+            final_coord = len(self.prot1.sentence.tokens)
         else:
             '''
             Retrieve POS between candidate genes
@@ -426,7 +427,7 @@ class InteractionCandidate(object):
             final_coord = self.between_idxes[1] + 1
 
         pos_str = list()
-        subsentence = self.prot1.sentence[init_coord:final_coord]
+        subsentence = self.prot1.sentence.tokens[init_coord:final_coord]
         for token in subsentence:
             pos_str.append(token['pos'])
         return ",".join(pos_str)
@@ -488,9 +489,9 @@ class InteractionCandidate(object):
         tokens_to_work = list()
 
         if flag == "between":
-            tokens_to_work = self.prot1.sentence[self.between_idxes[0]:self.between_idxes[1]]
+            tokens_to_work = self.prot1.sentence.tokens[self.between_idxes[0]:self.between_idxes[1]]
         else:
-            tokens_to_work = self.prot1.sentence
+            tokens_to_work = self.prot1.sentence.tokens
 
         for token in tokens_to_work:
             if re.match('VB[DGNPZ]?', token['pos']):
