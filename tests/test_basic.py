@@ -149,6 +149,18 @@ def test_get_pos_annotation():
         sentence.get_candidates()
         assert(sentence.candidates[0]._InteractionCandidate__get_token_pos(mode="between") == "NN,VBZ,TO,VB,IN,NN")
 
+def test_sentence_to_html():
+    '''
+    Tests if sentence to html works
+    '''
+    text = "The transcription factor of THOC2 seems to be interacting with the nuclear receptor protein 2."
+    article = core.Article(pmid="1234", fulltext=text)
+    article.extract_sentences()
+    for sentence in article.sentences:
+        sentence.annotate()
+        sentence.get_candidates()
+        assert(sentence.to_html() == "The transcription factor of <prot> THOC2 </prot> seems to be interacting with the <prot> nuclear receptor protein 2 </prot> .")
+
 def get_pos_count():
     '''
     Tests pos count feature

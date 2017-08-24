@@ -292,7 +292,6 @@ class Sentence(object):
         if not self.tokens:
             self.annotate()
         # Get the proteins
-        # Get the proteins
         prot_counter = 0
         state        = 0
         prot_list = list()
@@ -322,6 +321,37 @@ class Sentence(object):
         # Create candidates for sentence
         for prot in itertools.combinations(prots_in_sentence, r=2):
             self.candidates.append(InteractionCandidate(prot1=prot[0], prot2=prot[1]))
+
+    def to_html(self):
+        '''
+        Sentence to HTML string
+        '''
+        if not self.tokens:
+            self.annotate()
+        if not self.candidates:
+            self.get_candidates()
+
+        state = 0
+        html_list = list()
+        for token in self.tokens:
+            if state == 0:
+                if token['ner'] == "O":
+                    html_list.append(token['word'])
+                else:
+                    # Init of protein
+                    state = 1
+                    html_list.append("<prot>")
+                    html_list.append(token['word'])
+            else:
+                if token['ner'] == "O":
+                    # End of protein
+                    html_list.append("</prot>")
+                    html_list.append(token['word'])
+                    state = 0
+                else:
+                    # Continues protein
+                    html_list.append(token['word'])
+        return " ".join(html_list)
 
     def __str__(self):
         return self.originaltext
