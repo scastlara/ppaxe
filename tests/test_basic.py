@@ -174,3 +174,39 @@ def get_pos_count():
         for candidate in sentence.candidates:
             candidate.compute_features()
             assert(candidate.features[85] == 1)
+
+def test_prot_count():
+    '''
+    Tests if prot count features work
+    '''
+    text = "MAPK13 seems to be directly correlated with MAPK12, which would mean that MAPK13 depends on the expression of MAPK13 and MAPK12."
+    article = core.Article(pmid="1234", fulltext=text)
+    article.extract_sentences()
+    for sentence in article.sentences:
+        sentence.annotate()
+        sentence.get_candidates()
+        #print(",,".join([token['word'] for token in sentence.tokens]))
+        second_candidate = sentence.candidates[1]
+        second_candidate.compute_features()
+        last_candidate   = sentence.candidates[-1]
+        last_candidate.compute_features()
+        '''
+        Assert that:
+        [MAPK13] seems to be directly correlated with MAPK12, which would mean that [MAPK13]
+            - MAPK13 only appears two times
+            - etc.
+        (...) [MAPK13] and [MAPK12].
+            - MAPK12 appears 2 times
+            - etc.
+        '''
+
+        assert(
+            second_candidate.features[112] == 2 and
+            second_candidate.features[113] == 2 and
+            second_candidate.features[114] == 3 and
+            second_candidate.features[115] == 3 and
+            last_candidate.features[112] == 1   and
+            last_candidate.features[113] == 1   and
+            last_candidate.features[114] == 3   and
+            last_candidate.features[115] == 2
+        )

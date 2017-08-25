@@ -13,6 +13,7 @@ import numpy as np
 from bisect import bisect_left, bisect_right
 import math
 import sys
+import ppaxe.feature_names as fn
 NLP = StanfordCoreNLP('http://localhost:9000')
 
 #NER_TAGGER = ner.SocketNER(host='localhost', port=9000)
@@ -160,7 +161,7 @@ class Article(object):
         '''
         pass
 
-    def extract_sentences(self, source="fulltext"):
+    def extract_sentences(self, mode="split", source="fulltext"):
         '''
         Finds sentence boundaries and saves them as sentence objects
         Does not work very well.
@@ -171,56 +172,60 @@ class Article(object):
         else:
             text = self.abstract
 
-        caps = "([A-Z])"
-        prefixes = "(Mr|St|Mrs|Ms|Dr)[.]"
-        digits = "([0-9])"
-        fig_letters = "([A-Ka-k])"
-        suffixes = "(Inc|Ltd|Jr|Sr|Co)"
-        starters = r"(Mr|Mrs|Ms|Dr|He\s|She\s|It\s|They\s|Their\s|Our\s|We\s|But\s|However\s|That\s|This\s|Wherever)"
-        acronyms = "([A-Z][.][A-Z][.](?:[A-Z][.])?)"
-        websites = "[.](com|net|org|io|gov)"
-        species = r"([A-Z])[.] ?([a-z]+)"
-        text = " " + text + "  "
-        text = text.replace("\n"," ")
-        text = re.sub(prefixes,"\\1<prd>",text)
-        text = re.sub(websites,"<prd>\\1",text)
-        if "Ph.D" in text:
-            text = text.replace("Ph.D.","Ph<prd>D<prd>")
-        text = re.sub(r"\s" + caps + "[.] "," \\1<prd> ",text)
-        text = re.sub(acronyms+" "+starters,"\\1<stop> \\2",text)
-        text = re.sub(caps + "[.]" + caps + "[.]" + caps + "[.]","\\1<prd>\\2<prd>\\3<prd>",text)
-        text = re.sub(caps + "[.]" + caps + "[.]","\\1<prd>\\2<prd>",text)
-        text = re.sub(" "+suffixes+"[.] "+starters," \\1<stop> \\2",text)
-        text = re.sub(" "+suffixes+"[.]"," \\1<prd>",text)
-        text = re.sub(" " + caps + "[.]"," \\1<prd>",text)
-        text = re.sub(digits + caps + "[.]"," \\1<prd>",text)
-        text = re.sub(digits + "[.]" + digits,"\\1<prd>\\2",text)
-        text = re.sub(digits + "[.]" + fig_letters,"\\1<prd>\\2",text)
-        text = re.sub(species, "\\1<prd> \\2", text)
-        if "”"    in text:
-            text = text.replace(".”","”.")
-        if "\""   in text:
-            text = text.replace(".\"","\".")
-        if "!"    in text:
-            text = text.replace("!\"","\"!")
-        if "?"    in text:
-            text = text.replace("?\"","\"?")
-        if "e.g." in text:
-            text = text.replace("e.g.","e<prd>g<prd>")
-        if "i.e." in text:
-            text = text.replace("i.e.","i<prd>e<prd>")
-        text = text.replace(".",".<stop>")
-        text = text.replace("?","?<stop>")
-        text = text.replace("!","!<stop>")
-        text = text.replace("<prd>",".")
-        sentences = text.split("<stop>")
-        #sentences = sentences[:-1]
-        sentences = [s.strip() for s in sentences]
-        #print(sentences)
-        for sentence in sentences:
-            if not sentence.strip():
-                continue
-            self.sentences.append(Sentence(originaltext=sentence))
+        if mode == "no-split":
+            # Don't try to separate the sentence.
+            # Everything in the text is just one sentence!
+            self.sentences.append(Sentence(originaltext=text))
+        else:
+            caps = "([A-Z])"
+            prefixes = "(Mr|St|Mrs|Ms|Dr)[.]"
+            digits = "([0-9])"
+            fig_letters = "([A-Ka-k])"
+            suffixes = "(Inc|Ltd|Jr|Sr|Co)"
+            starters = r"(Mr|Mrs|Ms|Dr|He\s|She\s|It\s|They\s|Their\s|Our\s|We\s|But\s|However\s|That\s|This\s|Wherever)"
+            acronyms = "([A-Z][.][A-Z][.](?:[A-Z][.])?)"
+            websites = "[.](com|net|org|io|gov)"
+            species = r"([A-Z])[.] ?([a-z]+)"
+            text = " " + text + "  "
+            text = text.replace("\n"," ")
+            text = re.sub(prefixes,"\\1<prd>",text)
+            text = re.sub(websites,"<prd>\\1",text)
+            if "Ph.D" in text:
+                text = text.replace("Ph.D.","Ph<prd>D<prd>")
+            text = re.sub(r"\s" + caps + "[.] "," \\1<prd> ",text)
+            text = re.sub(acronyms+" "+starters,"\\1<stop> \\2",text)
+            text = re.sub(caps + "[.]" + caps + "[.]" + caps + "[.]","\\1<prd>\\2<prd>\\3<prd>",text)
+            text = re.sub(caps + "[.]" + caps + "[.]","\\1<prd>\\2<prd>",text)
+            text = re.sub(" "+suffixes+"[.] "+starters," \\1<stop> \\2",text)
+            text = re.sub(" "+suffixes+"[.]"," \\1<prd>",text)
+            text = re.sub(" " + caps + "[.]"," \\1<prd>",text)
+            text = re.sub(digits + caps + "[.]"," \\1<prd>",text)
+            text = re.sub(digits + "[.]" + digits,"\\1<prd>\\2",text)
+            text = re.sub(digits + "[.]" + fig_letters,"\\1<prd>\\2",text)
+            text = re.sub(species, "\\1<prd> \\2", text)
+            if "”"    in text:
+                text = text.replace(".”","”.")
+            if "\""   in text:
+                text = text.replace(".\"","\".")
+            if "!"    in text:
+                text = text.replace("!\"","\"!")
+            if "?"    in text:
+                text = text.replace("?\"","\"?")
+            if "e.g." in text:
+                text = text.replace("e.g.","e<prd>g<prd>")
+            if "i.e." in text:
+                text = text.replace("i.e.","i<prd>e<prd>")
+            text = text.replace(".",".<stop>")
+            text = text.replace("?","?<stop>")
+            text = text.replace("!","!<stop>")
+            text = text.replace("<prd>",".")
+            sentences = text.split("<stop>")
+            #sentences = sentences[:-1]
+            sentences = [s.strip() for s in sentences]
+            for sentence in sentences:
+                if not sentence.strip():
+                    continue
+                self.sentences.append(Sentence(originaltext=sentence))
 
     def count_genes(self):
         '''
@@ -423,6 +428,8 @@ class InteractionCandidate(object):
         self.__verb_features("all")
         self.__pos_features("between")
         self.__pos_features("all")
+        self.__prot_count("between")
+        self.__prot_count("all")
 
     def __token_distance(self):
         '''
@@ -436,6 +443,29 @@ class InteractionCandidate(object):
         Total tokens in sentence
         '''
         self.features.append(len(self.prot1.sentence.tokens))
+
+    def __prot_count(self, mode="all"):
+        '''
+        Counts the number of times the proteins of the candidate (A and B)
+        appear in the sentence (either in the whole sentence [mode="all"] or between
+        A and B [mode="between"] )
+        '''
+        prota_count = 0
+        protb_count = 0
+        tokens = list()
+        if mode == "all":
+            tokens = self.prot1.sentence.tokens
+        else:
+            init_coord  = self.between_idxes[0] - 1
+            final_coord = self.between_idxes[1] + 1
+            tokens = self.prot1.sentence.tokens[init_coord:final_coord]
+
+        for token in tokens:
+            if token['word'] == self.prot1.symbol:
+                prota_count += 1
+            if token['word'] == self.prot2.symbol:
+                protb_count += 1
+        self.features.extend([prota_count, protb_count])
 
     def __get_token_pos(self, mode="all"):
         '''
@@ -484,7 +514,8 @@ class InteractionCandidate(object):
 
         if mode == "all" or mode == "between":
             for pos in self.__get_token_pos(mode=mode).split(","):
-                pos_counts[pos] += 1
+                if pos in pos_counts:
+                    pos_counts[pos] += 1
         for postag in sorted(pos_counts):
             self.features.append(pos_counts[postag])
 
