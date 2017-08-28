@@ -591,7 +591,6 @@ class InteractionCandidate(object):
                 keywords[token['lemma']] += 1
 
         for word, value in sorted(keywords.iteritems()):
-            print("%s and %s" % (word, value))
             self.features.append(value)
 
 
