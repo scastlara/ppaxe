@@ -210,3 +210,22 @@ def test_prot_count():
             last_candidate.features[114] == 3   and
             last_candidate.features[115] == 2
         )
+
+def test_keyword_count():
+    '''
+    Tests if keyword count features work
+    '''
+    text = "PROT12 interacts interacts and acetylates PROT1."
+    article = core.Article(pmid="1234", fulltext=text)
+    article.extract_sentences()
+    for sentence in article.sentences:
+        sentence.annotate()
+        sentence.get_candidates()
+        sentence.candidates[0].compute_features()
+        '''
+        Assert that Interact == 2 and Acetylate == 1
+        '''
+        assert(
+            sentence.candidates[0].features[150] == 2 and
+            sentence.candidates[0].features[116] == 1
+        )

@@ -14,6 +14,9 @@ from bisect import bisect_left, bisect_right
 import math
 import sys
 import ppaxe.feature_names as fn
+
+
+
 NLP = StanfordCoreNLP('http://localhost:9000')
 
 #NER_TAGGER = ner.SocketNER(host='localhost', port=9000)
@@ -366,34 +369,7 @@ class Sentence(object):
 class InteractionCandidate(object):
     '''
     Class for interaction candidates in articles
-    FEATURES:
-        1. Token Distance
-        2. Tokens in Sentence
-        3. VB token count (only verbs between A and B)
-        4. VBD token count (only verbs between A and B)
-        5. VBG token count (only verbs between A and B)
-        6. VBN token count (only verbs between A and B)
-        7. VBP token count (only verbs between A and B)
-        8. VBZ token count (only verbs between A and B)
-        9. Max verb Score (only verbs between A and B)
-        10. Total verb score (sum of scores) (only verbs between A and B)
-        11. Distance from A to closest verb (only verbs between A and B)
-        12. Distance from A to farthest verb (only verbs between A and B)
-        13. Distance from B to closest verb (only verbs between A and B)
-        14. Distance from B to farthest verb (only verbs between A and B)
-        15. VB token count (all verbs in sentence)
-        16. VBD token count (all verbs in sentence)
-        17. VBG token count (all verbs in sentence)
-        18. VBN token count (all verbs in sentence)
-        19. VBP token count (all verbs in sentence)
-        20. VBZ token count (all verbs in sentence)
-        21. Max verb Score (all verbs in sentence)
-        22. Total verb score (sum of scores) (all verbs in sentence)
-        23. Distance from A to closest verb (all verbs in sentence)
-        24. Distance from A to farthest verb (all verbs in sentence)
-        25. Distance from B to closest verb (all verbs in sentence)
-        26. Distance from B to farthest verb (all verbs in sentence)
-        ...
+    FEATURES: in feature_names.py
     '''
     # This will be pre-calculated from the corpora.
     # Now it is like this for testing and developing purposes
@@ -430,6 +406,7 @@ class InteractionCandidate(object):
         self.__pos_features("all")
         self.__prot_count("between")
         self.__prot_count("all")
+        self.__keyword_count("between")
 
     def __token_distance(self):
         '''
@@ -580,6 +557,42 @@ class InteractionCandidate(object):
                 int(cl2), int(far2)
             ]
         )
+
+    def __keyword_count(self, mode="all"):
+        '''
+        Counts appearance of keywords in sentence
+        '''
+
+        keywords = dict({
+        'acetylate': 0, 'activate': 0, 'acylate': 0, 'amidate': 0, 'assemble': 0, 'attach': 0,
+        'bind': 0, 'biotinylate': 0, 'block': 0, 'brominate': 0, 'carboxylate': 0, 'catalyze': 0,
+        'cleave': 0, 'complex': 0, 'conjugate': 0, 'contact': 0, 'couple': 0, 'cysteinylate': 0,
+        'demethylate': 0, 'dephosphorylate': 0, 'dimerise': 0, 'dimerize': 0,
+        'disassemble': 0, 'discharge': 0, 'dissociate': 0, 'down-regulate': 0, 'downregulate': 0,
+        'farnesylate': 0, 'formylate': 0, 'hydroxilate': 0, 'hydroxylate': 0, 'inactivate': 0,
+        'induce': 0, 'inhibit': 0, 'interact': 0, 'mediate': 0, 'methylate': 0, 'modify': 0,
+        'modulate': 0, 'multimerise': 0, 'multimerize': 0, 'myristoylate': 0, 'myristylate': 0,
+        'nitrosylate': 0, 'overexpress': 0, 'palmitoylate': 0, 'palmitylate': 0, 'phosphorylate': 0,
+        'precipitate': 0, 'promote': 0, 'pyruvate': 0, 'regulate': 0, 'repress': 0, 'stimulate': 0,
+        'substitute': 0, 'sumoylate': 0, 'suppress': 0, 'transactivate': 0, 'ubiquitinate': 0,
+        'ubiquitinylate': 0, 'up-regulate': 0, 'upregulate': 0
+        })
+
+        tokens = list()
+        if mode == "all":
+            tokens = self.prot1.sentence.tokens
+        else:
+            init_coord  = self.between_idxes[0] - 1
+            final_coord = self.between_idxes[1] + 1
+            tokens = self.prot1.sentence.tokens[init_coord:final_coord]
+
+        for token in tokens:
+            if token['lemma'] in keywords:
+                keywords[token['lemma']] += 1
+
+        for word, value in sorted(keywords.iteritems()):
+            print("%s and %s" % (word, value))
+            self.features.append(value)
 
 
     def __str__(self):
