@@ -114,7 +114,10 @@ class PMQuery(object):
                 articles = article_text.getElementsByTagName('article')
                 for article in articles:
                     pmid  = article.getElementsByTagName('article-id')[0].firstChild.nodeValue
-                    pmcid = article.getElementsByTagName('article-id')[1].firstChild.nodeValue
+                    try:
+                        pmcid = article.getElementsByTagName('article-id')[1].firstChild.nodeValue
+                    except:
+                        continue
                     self.found.add(pmid)
                     body =  article.getElementsByTagName('body')
                     if len(body) == 0:
@@ -185,7 +188,7 @@ class Article(object):
             self.sentences.append(Sentence(originaltext=text))
         else:
             caps = "([A-Z])"
-            prefixes = "(Mr|St|Mrs|Ms|Dr)[.]"
+            prefixes = "(Mr|Fig|fig|St|Mrs|Ms|Dr)[.]"
             digits = "([0-9])"
             fig_letters = "([A-Ka-k])"
             suffixes = "(Inc|Ltd|Jr|Sr|Co)"
