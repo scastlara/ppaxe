@@ -14,8 +14,12 @@ from bisect import bisect_left, bisect_right
 import math
 import sys
 import ppaxe.feature_names as fn
+import pkg_resources
+import pickle
 
 
+reload(sys)
+sys.setdefaultencoding('utf8')
 
 NLP = StanfordCoreNLP('http://localhost:9000')
 
@@ -386,11 +390,18 @@ class InteractionCandidate(object):
         "stimulate":1, "substitute":1, "catalyze":1, "cleave":1, "conjugate":1, "disassemble":1,
         "discharge":1, "mediate":1, "modulate":1, "repress":1, "transactivate":1
     })
+
+    PRED_FILE = pkg_resources.resource_filename('ppaxe', 'data/RF_scikit.pkl')
+    with open(PRED_FILE, 'rb') as f:
+        predictor = pickle.load(f)
+
     def __init__(self, prot1, prot2):
         self.prot1 = prot1
         self.prot2 = prot2
         self.between_idxes = (prot1.positions[-1], prot2.positions[0] - 1)
         self.features = list() # I will make it a numpy array in the future
+        self.label    = None
+        self.votes    = None
 
     def compute_features(self):
         '''
@@ -593,6 +604,19 @@ class InteractionCandidate(object):
         for word, value in sorted(keywords.iteritems()):
             self.features.append(value)
 
+
+    def predict(self):
+        '''
+        Computes the votes (prediction) of the candidate
+        '''
+        if not self.features:
+            self.compute_features()
+        pred = InteractionCandidate.predictor.predict_proba([self.features])[:,1]
+        self.votes = pred
+        if pred >= 0.55:
+            self.label = True
+        else:
+            self.label = False
 
     def __str__(self):
         return "[%s] may interact with [%s]" % (self.prot1.symbol, self.prot2.symbol)
