@@ -6,6 +6,7 @@ from ppaxe import core
 from pycorenlp import StanfordCoreNLP
 import json
 
+
 def test_sentence_separator():
     '''
     Tests if sentence separator works...
@@ -121,7 +122,7 @@ def test_verb_features():
             candidate.compute_features()
             # Check if it has detected one VBG (interacting) verb and another VBZ (is) verb
             # and verb scores (for now 3 and 5)
-            assert(candidate.features[2:14] == [0, 0, 2, 0, 0, 1, 4, 7, 1, 4, 3, 6])
+            assert(candidate.features[2:12] == [0, 0, 2, 0, 0, 1, 1, 4, 3, 6])
 
 def test_candidates_multiple_sentences():
     '''
@@ -201,14 +202,14 @@ def test_prot_count():
         '''
 
         assert(
-            second_candidate.features[112] == 2 and
-            second_candidate.features[113] == 2 and
-            second_candidate.features[114] == 3 and
-            second_candidate.features[115] == 3 and
-            last_candidate.features[112] == 1   and
-            last_candidate.features[113] == 1   and
-            last_candidate.features[114] == 3   and
-            last_candidate.features[115] == 2
+            second_candidate.features[108] == 2 and
+            second_candidate.features[109] == 2 and
+            second_candidate.features[110] == 3 and
+            second_candidate.features[111] == 3 and
+            last_candidate.features[108] == 1   and
+            last_candidate.features[109] == 1   and
+            last_candidate.features[110] == 3   and
+            last_candidate.features[111] == 2
         )
 
 def test_keyword_count():
@@ -226,6 +227,37 @@ def test_keyword_count():
         Assert that Interact == 2 and Acetylate == 1
         '''
         assert(
-            sentence.candidates[0].features[150] == 2 and
-            sentence.candidates[0].features[116] == 1
+            sentence.candidates[0].features[146] == 2 and
+            sentence.candidates[0].features[112] == 1
         )
+
+def test_prediction():
+    '''
+    Tests if the prediction works
+    '''
+    text = "PROT12 interacts with PROT2."
+    article = core.Article(pmid="1234", fulltext=text)
+    article.extract_sentences()
+    for sentence in article.sentences:
+        sentence.annotate()
+        sentence.get_candidates()
+        sentence.candidates[0].compute_features()
+        sentence.candidates[0].predict()
+        assert(sentence.candidates[0].votes == 0.882)
+
+def test_before_lookup():
+    '''
+    Tests the lookup
+    '''
+    text = "The interesting protein MAPK13 might interact directly with MAPK12 closely and fast."
+    article = core.Article(pmid="1234", fulltext=text)
+    article.extract_sentences()
+    for sentence in article.sentences:
+        sentence.annotate()
+        sentence.get_candidates()
+        candidate = sentence.candidates[0]
+        candidate.compute_features()
+        print(len(candidate.features))
+        # Assert that the word "fast" is recognized as an adverb:
+        # 'LOOKUP_PROT2_plus3_POS_RB' == 1
+        assert(candidate.features[673] == 1)

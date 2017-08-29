@@ -14,13 +14,13 @@ from bisect import bisect_left, bisect_right
 import math
 import sys
 import ppaxe.feature_names as fn
-
-
+import pkg_resources
+import pickle
 
 NLP = StanfordCoreNLP('http://localhost:9000')
-
+reload(sys)
+sys.setdefaultencoding('utf8')
 #NER_TAGGER = ner.SocketNER(host='localhost', port=9000)
-
 
 # FUNCTIONS
 # ----------------------------------------------
@@ -80,8 +80,12 @@ def json_to_sentence(json):
     '''
     pass
 
+
+
 # CLASSES
 # ----------------------------------------------
+
+
 class PMQuery(object):
     '''
     Class for PubMed queries. Will have Article objects. Will try to
@@ -289,7 +293,6 @@ class Sentence(object):
         if not self.originaltext.strip():
             self.tokens = ""
         annotated = json.loads(NLP.annotate(self.originaltext))
-        #print(annotated)
         if annotated['sentences']:
             self.tokens = annotated['sentences'][0]['tokens']
 
@@ -370,6 +373,8 @@ class InteractionCandidate(object):
     '''
     Class for interaction candidates in articles
     FEATURES: in feature_names.py
+    To access the predictor: InteractionCandidate.predictor.
+    For example: InteractionCandidate.predictor.predict(self.features)
     '''
     # This will be pre-calculated from the corpora.
     # Now it is like this for testing and developing purposes
@@ -386,27 +391,45 @@ class InteractionCandidate(object):
         "stimulate":1, "substitute":1, "catalyze":1, "cleave":1, "conjugate":1, "disassemble":1,
         "discharge":1, "mediate":1, "modulate":1, "repress":1, "transactivate":1
     })
+
+    PRED_FILE = pkg_resources.resource_filename('ppaxe', 'data/RF_scikit.pkl')
+    with open(PRED_FILE, 'rb') as f:
+        predictor = pickle.load(f)
+
     def __init__(self, prot1, prot2):
         self.prot1 = prot1
         self.prot2 = prot2
         self.between_idxes = (prot1.positions[-1], prot2.positions[0] - 1)
         self.features = list() # I will make it a numpy array in the future
+        self.label    = None
+        self.votes    = None
 
     def compute_features(self):
         '''
         Computes all the necessary features to predict if this InteractionCandidate
         is a real interaction
         '''
-        # Will call several private methods here
+
+        # Numeric features (length)
         self.__token_distance()
         self.__total_tokens()
+        # What verbs are present in the sentences? How many?
         self.__verb_features("between")
         self.__verb_features("all")
+        # What POS elements are between the proteins? And in all the sentence?
         self.__pos_features("between")
         self.__pos_features("all")
+        # How many times the proteins appear on the sentences?
         self.__prot_count("between")
         self.__prot_count("all")
+        # Count keywords between the proteins and in all the sentence
         self.__keyword_count("between")
+        # What POS-elements are in position -1, -2 and -3 of PROT[AB]?
+        # And in position +1, +2 and +3?
+        self.__before_lookup("prota")
+        self.__before_lookup("protb")
+        self.__after_lookup("prota")
+        self.__after_lookup("protb")
 
     def __token_distance(self):
         '''
@@ -509,7 +532,6 @@ class InteractionCandidate(object):
         farthest_distance = math.fabs(farthest_verb_idx -  pidx)
         return (closest_distance, farthest_distance)
 
-
     def __verb_features(self, flag):
         '''
         Computes all the verb features for the candidate.
@@ -536,10 +558,6 @@ class InteractionCandidate(object):
                 someverb_flag = True
                 numverbs[token['pos']]  += 1
                 verb_idxes.append(token['index'])
-                if token['lemma'] in InteractionCandidate.verb_scores:
-                    totalscore +=  InteractionCandidate.verb_scores[token['lemma']]
-                    if InteractionCandidate.verb_scores[token['lemma']] > maxscore:
-                        maxscore = InteractionCandidate.verb_scores[token['lemma']]
 
         # Compute verb distances for the two proteins
         (cl1, far1, cl2, far2) = (0,0,0,0)
@@ -552,7 +570,6 @@ class InteractionCandidate(object):
                 numverbs['VB'],  numverbs['VBD'],
                 numverbs['VBG'], numverbs['VBN'],
                 numverbs['VBP'], numverbs['VBZ'],
-                maxscore, totalscore,
                 int(cl1), int(far1),
                 int(cl2), int(far2)
             ]
@@ -593,6 +610,141 @@ class InteractionCandidate(object):
         for word, value in sorted(keywords.iteritems()):
             self.features.append(value)
 
+    def predict(self):
+        '''
+        Computes the votes (prediction) of the candidate
+        '''
+        if not self.features:
+            self.compute_features()
+        pred = InteractionCandidate.predictor.predict_proba([self.features])[:,1]
+        self.votes = pred
+        if pred >= 0.55:
+            self.label = True
+        else:
+            self.label = False
+
+    def __before_lookup(self, protein):
+        '''
+        Does a lookup of the POS-tags and words in positions -1, -2 and -3
+        of the specified protein
+        '''
+
+        lookup_features = dict({
+            'pos-1': None,
+            'pos-2': None,
+            'pos-3': None,
+        })
+        if protein == "prota":
+            protein = self.prot1
+        else:
+            protein = self.prot2
+        left_hand = protein.positions[0]
+        if left_hand == 1:
+            # Protein at start of sentence
+            pass
+        elif left_hand == 2:
+            # Protein at second word
+            lookup_features['pos-1']  = protein.sentence.tokens[left_hand - 2]['pos']
+            #lookup_features['word-1'] = protein.sentence.tokens[left_hand - 2]['lemma']
+        elif left_hand == 3:
+            # Protein at third word
+            lookup_features['pos-1']  = protein.sentence.tokens[left_hand - 2]['pos']
+            #lookup_features['word-1'] = protein.sentence.tokens[left_hand - 2]['lemma']
+            lookup_features['pos-2']  = protein.sentence.tokens[left_hand - 3]['pos']
+            #lookup_features['word-2'] = protein.sentence.tokens[left_hand - 3]['lemma']
+        else:
+            # Protein at fourth word. All features can be computed.
+            lookup_features['pos-1']  = protein.sentence.tokens[left_hand - 2]['pos']
+            #lookup_features['word-1'] = protein.sentence.tokens[left_hand - 2]['lemma']
+            lookup_features['pos-2']  = protein.sentence.tokens[left_hand - 3]['pos']
+            #lookup_features['word-2'] = protein.sentence.tokens[left_hand - 3]['lemma']
+            lookup_features['pos-3']  = protein.sentence.tokens[left_hand - 4]['pos']
+            #lookup_features['word-3'] = protein.sentence.tokens[left_hand - 4]['lemma']
+
+        for position, tag in sorted(lookup_features.iteritems()):
+            pos_counts = {
+                "CC": 0, "LS": 0, "MD": 0,
+                "NN": 0, "NNS": 0, "NNP": 0,
+                "NNPS": 0, "PDT": 0, "POS": 0,
+                "PRP": 0, "PRP$": 0, "RB": 0,
+                "RBR": 0, "RBS": 0, "RP": 0,
+                "SYM": 0, "TO": 0, "UH": 0,
+                "VB": 0, "VBD": 0, "VBG": 0,
+                "VBN": 0, "VBP": 0, "VBZ": 0,
+                "WDT": 0, "WP": 0, "WP$": 0,
+                "WRB": 0, "IN": 0, "DT": 0, ".": 0,
+                "JJ" :0, "CD": 0, "": 0, "-LRB-": 0,
+                "-RRB-": 0, "JJR": 0, ":": 0, "FW": 0,
+                'JJS': 0, "EX": 0, "''": 0, ",":0
+            }
+            if tag in pos_counts:
+                if tag in pos_counts:
+                    pos_counts[tag] += 1
+            #print "%s and %s" % (position, pos_counts)
+            for postag in sorted(pos_counts):
+                self.features.append(pos_counts[postag])
+
+
+
+    def __after_lookup(self, protein):
+        '''
+        Does a lookup of the POS-tags and words in positions +1, +2 and +3
+        of the specified protein
+        '''
+        lookup_features = dict({
+            'pos+1': None,
+            'pos+2': None,
+            'pos+3': None,
+        })
+        if protein == "prota":
+            protein = self.prot1
+        else:
+            protein = self.prot2
+        right_hand = protein.positions[-1]
+        remaining_tokens = len(protein.sentence.tokens) - right_hand - 1
+        if remaining_tokens == 0:
+            # Protein at start of sentence
+            pass
+        elif remaining_tokens == 1:
+            # Protein at second word
+            lookup_features['pos+1']  = protein.sentence.tokens[right_hand]['pos']
+            #lookup_features['word+1'] = protein.sentence.tokens[right_hand]['lemma']
+        elif remaining_tokens == 2:
+            # Protein at third word
+            lookup_features['pos+1']  = protein.sentence.tokens[right_hand]['pos']
+            #lookup_features['word+1'] = protein.sentence.tokens[right_hand]['lemma']
+            lookup_features['pos+2']  = protein.sentence.tokens[right_hand + 1]['pos']
+            #lookup_features['word+2'] = protein.sentence.tokens[right_hand + 1]['lemma']
+        else:
+            # Protein at fourth word. All features can be computed.
+            lookup_features['pos+1']  = protein.sentence.tokens[right_hand]['pos']
+            #lookup_features['word+1'] = protein.sentence.tokens[right_hand]['lemma']
+            lookup_features['pos+2']  = protein.sentence.tokens[right_hand + 1]['pos']
+            #lookup_features['word+2'] = protein.sentence.tokens[right_hand + 1]['lemma']
+            lookup_features['pos+3']  = protein.sentence.tokens[right_hand + 2]['pos']
+            #lookup_features['word+3'] = protein.sentence.tokens[right_hand + 2]['lemma']
+
+        for position, tag in sorted(lookup_features.iteritems()):
+            pos_counts = {
+                "CC": 0, "LS": 0, "MD": 0,
+                "NN": 0, "NNS": 0, "NNP": 0,
+                "NNPS": 0, "PDT": 0, "POS": 0,
+                "PRP": 0, "PRP$": 0, "RB": 0,
+                "RBR": 0, "RBS": 0, "RP": 0,
+                "SYM": 0, "TO": 0, "UH": 0,
+                "VB": 0, "VBD": 0, "VBG": 0,
+                "VBN": 0, "VBP": 0, "VBZ": 0,
+                "WDT": 0, "WP": 0, "WP$": 0,
+                "WRB": 0, "IN": 0, "DT": 0, ".": 0,
+                "JJ" :0, "CD": 0, "": 0, "-LRB-": 0,
+                "-RRB-": 0, "JJR": 0, ":": 0, "FW": 0,
+                'JJS': 0, "EX": 0, "''": 0, ",":0
+            }
+            if tag in pos_counts:
+                if tag in pos_counts:
+                    pos_counts[tag] += 1
+            for postag in sorted(pos_counts):
+                self.features.append(pos_counts[postag])
 
     def __str__(self):
         return "[%s] may interact with [%s]" % (self.prot1.symbol, self.prot2.symbol)
