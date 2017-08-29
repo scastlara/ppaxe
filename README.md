@@ -3,7 +3,6 @@
 
 -----
 
-# PP-axe
 
 Tool to retrieve protein-protein interactions and calculate protein/gene symbol ocurrence in the scientific literature (PubMed & PubMedCentral).
 
