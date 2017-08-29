@@ -1,6 +1,8 @@
 
 <img width="350" src="https://raw.githubusercontent.com/scastlara/ppaxe/master/ppaxe/logo.png"/>
+
 -----
+
 # PP-axe
 
 Tool to retrieve protein-protein interactions and calculate protein/gene symbol ocurrence in the scientific literature (PubMed & PubMedCentral).
