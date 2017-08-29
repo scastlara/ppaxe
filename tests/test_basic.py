@@ -231,6 +231,22 @@ def test_keyword_count():
             sentence.candidates[0].features[112] == 1
         )
 
+def test_before_lookup():
+    '''
+    Tests the lookup
+    '''
+    text = "The interesting protein MAPK13 might interact directly with MAPK12 closely and fast."
+    article = core.Article(pmid="1234", fulltext=text)
+    article.extract_sentences()
+    for sentence in article.sentences:
+        sentence.annotate()
+        sentence.get_candidates()
+        candidate = sentence.candidates[0]
+        candidate.compute_features()
+        # Assert that the word "fast" is recognized as an adverb:
+        # 'LOOKUP_PROT2_plus3_POS_RB' == 1
+        assert(candidate.features[673] == 1)
+
 def test_prediction():
     '''
     Tests if the prediction works
@@ -244,20 +260,3 @@ def test_prediction():
         sentence.candidates[0].compute_features()
         sentence.candidates[0].predict()
         assert(sentence.candidates[0].votes == 0.882)
-
-def test_before_lookup():
-    '''
-    Tests the lookup
-    '''
-    text = "The interesting protein MAPK13 might interact directly with MAPK12 closely and fast."
-    article = core.Article(pmid="1234", fulltext=text)
-    article.extract_sentences()
-    for sentence in article.sentences:
-        sentence.annotate()
-        sentence.get_candidates()
-        candidate = sentence.candidates[0]
-        candidate.compute_features()
-        print(len(candidate.features))
-        # Assert that the word "fast" is recognized as an adverb:
-        # 'LOOKUP_PROT2_plus3_POS_RB' == 1
-        assert(candidate.features[673] == 1)
