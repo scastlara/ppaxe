@@ -6,7 +6,6 @@ from ppaxe import core
 from pycorenlp import StanfordCoreNLP
 import json
 
-
 def test_sentence_separator():
     '''
     Tests if sentence separator works...
@@ -92,7 +91,7 @@ def test_token_distance():
         sentence.get_candidates()
         candidate = sentence.candidates[0]
         candidate.compute_features()
-        assert(candidate.features[0] == 3)
+        assert(candidate.features_todense()[0] == 3)
 
 def test_total_tokens():
     '''
@@ -106,7 +105,7 @@ def test_total_tokens():
         sentence.get_candidates()
         for candidate in sentence.candidates:
             candidate.compute_features()
-            assert(candidate.features[1] == 12)
+            assert(candidate.features_todense()[1] == 12)
 
 def test_verb_features():
     '''
@@ -122,7 +121,7 @@ def test_verb_features():
             candidate.compute_features()
             # Check if it has detected one VBG (interacting) verb and another VBZ (is) verb
             # and verb scores (for now 3 and 5)
-            assert(candidate.features[2:14] == [0, 0, 2, 0, 0, 1, 4, 7, 1, 4, 3, 6])
+            assert(candidate.features_todense()[2:14] == [0, 0, 2, 0, 0, 1, 4, 7, 1, 4, 3, 6])
 
 def test_candidates_multiple_sentences():
     '''
@@ -174,7 +173,7 @@ def get_pos_count():
         sentence.get_candidates()
         for candidate in sentence.candidates:
             candidate.compute_features()
-            assert(candidate.features[85] == 1)
+            assert(candidate.features_todense()[85] == 1)
 
 def test_prot_count():
     '''
@@ -202,14 +201,14 @@ def test_prot_count():
         '''
 
         assert(
-            second_candidate.features[112] == 2 and
-            second_candidate.features[113] == 2 and
-            second_candidate.features[114] == 3 and
-            second_candidate.features[115] == 3 and
-            last_candidate.features[112] == 1   and
-            last_candidate.features[113] == 1   and
-            last_candidate.features[114] == 3   and
-            last_candidate.features[115] == 2
+            second_candidate.features_todense()[112] == 2 and
+            second_candidate.features_todense()[113] == 2 and
+            second_candidate.features_todense()[114] == 3 and
+            second_candidate.features_todense()[115] == 3 and
+            last_candidate.features_todense()[112] == 1   and
+            last_candidate.features_todense()[113] == 1   and
+            last_candidate.features_todense()[114] == 3   and
+            last_candidate.features_todense()[115] == 2
         )
 
 def test_keyword_count():
@@ -227,8 +226,8 @@ def test_keyword_count():
         Assert that Interact == 2 and Acetylate == 1
         '''
         assert(
-            sentence.candidates[0].features[150] == 2 and
-            sentence.candidates[0].features[116] == 1
+            sentence.candidates[0].features_todense()[150] == 2 and
+            sentence.candidates[0].features_todense()[116] == 1
         )
 
 def test_prediction():
@@ -245,4 +244,4 @@ def test_prediction():
         sentence.candidates[0].predict()
         assert(sentence.candidates[0].votes == 0.882)
 
-#prueba()
+test_prediction()

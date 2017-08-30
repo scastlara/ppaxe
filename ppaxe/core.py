@@ -16,7 +16,7 @@ import sys
 import ppaxe.feature_names as fn
 import pkg_resources
 import pickle
-
+from scipy import sparse
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -402,9 +402,12 @@ class InteractionCandidate(object):
         self.prot1 = prot1
         self.prot2 = prot2
         self.between_idxes = (prot1.positions[-1], prot2.positions[0] - 1)
-        self.features = list() # I will make it a numpy array in the future
         self.label    = None
         self.votes    = None
+        self.feat_cols = list() # Will store the feature indices
+        self.feat_current_col = 0
+        self.feat_vals = list() # Will store the feature values for each index
+        self.features_sparse = None
 
     def compute_features(self):
         '''
@@ -422,18 +425,27 @@ class InteractionCandidate(object):
         self.__prot_count("all")
         self.__keyword_count("between")
 
+        rows = [0 for val in self.feat_vals]
+        self.features_sparse = sparse.coo_matrix((self.feat_vals, (rows, self.feat_cols)), shape=(1,178))
+
     def __token_distance(self):
         '''
         Token distance from protein A to protein B.
         '''
         subsentence = self.prot1.sentence.tokens[self.between_idxes[0]:self.between_idxes[1]]
-        self.features.append(len(subsentence))
+        if len(subsentence) > 0:
+            self.feat_cols.append(self.feat_current_col)
+            self.feat_vals.append(len(subsentence))
+        self.feat_current_col += 1
 
     def __total_tokens(self):
         '''
         Total tokens in sentence
         '''
-        self.features.append(len(self.prot1.sentence.tokens))
+        if len(self.prot1.sentence.tokens) > 0:
+            self.feat_cols.append(self.feat_current_col)
+            self.feat_vals.append(len(self.prot1.sentence.tokens))
+        self.feat_current_col += 1
 
     def __prot_count(self, mode="all"):
         '''
@@ -456,7 +468,14 @@ class InteractionCandidate(object):
                 prota_count += 1
             if token['word'] == self.prot2.symbol:
                 protb_count += 1
-        self.features.extend([prota_count, protb_count])
+
+        # These features are always > 0
+        # We always need to add them
+        self.feat_cols.append(self.feat_current_col)
+        self.feat_current_col += 1
+        self.feat_cols.append(self.feat_current_col)
+        self.feat_vals.extend([prota_count, protb_count])
+        self.feat_current_col += 1
 
     def __get_token_pos(self, mode="all"):
         '''
@@ -508,8 +527,10 @@ class InteractionCandidate(object):
                 if pos in pos_counts:
                     pos_counts[pos] += 1
         for postag in sorted(pos_counts):
-            self.features.append(pos_counts[postag])
-
+            if pos_counts[postag] > 0:
+                self.feat_cols.append(self.feat_current_col)
+                self.feat_vals.append(pos_counts[postag])
+            self.feat_current_col += 1
 
     def __verb_distances(self, pidx, vidxes):
         '''
@@ -561,16 +582,17 @@ class InteractionCandidate(object):
             (cl1, far1) = self.__verb_distances(self.prot1.positions[-1], verb_idxes)
             (cl2, far2) = self.__verb_distances(self.prot2.positions[-1], verb_idxes)
 
-        self.features.extend(
-            [
-                numverbs['VB'],  numverbs['VBD'],
-                numverbs['VBG'], numverbs['VBN'],
-                numverbs['VBP'], numverbs['VBZ'],
-                maxscore, totalscore,
-                int(cl1), int(far1),
-                int(cl2), int(far2)
-            ]
-        )
+        for value in [
+            numverbs['VB'],  numverbs['VBD'],
+            numverbs['VBG'], numverbs['VBN'],
+            numverbs['VBP'], numverbs['VBZ'],
+            maxscore, totalscore,
+            int(cl1), int(far1),
+            int(cl2), int(far2)]:
+            if value >= 0:
+                self.feat_cols.append(self.feat_current_col)
+                self.feat_vals.append(value)
+            self.feat_current_col += 1
 
     def __keyword_count(self, mode="all"):
         '''
@@ -605,16 +627,26 @@ class InteractionCandidate(object):
                 keywords[token['lemma']] += 1
 
         for word, value in sorted(keywords.iteritems()):
-            self.features.append(value)
+            if value > 0:
+                self.feat_cols.append(self.feat_current_col)
+                self.feat_vals.append(value)
+            self.feat_current_col += 1
 
+    def features_todense(self):
+        '''
+        Returns features as a plain python list. Used for testing.
+        '''
+        if self.features_sparse is None:
+            self.compute_features()
+        return self.features_sparse.todense()[0].tolist()[0]
 
     def predict(self):
         '''
         Computes the votes (prediction) of the candidate
         '''
-        if not self.features:
+        if self.features_sparse is None:
             self.compute_features()
-        pred = InteractionCandidate.predictor.predict_proba([self.features])[:,1]
+        pred = InteractionCandidate.predictor.predict_proba(self.features_sparse)[:,1]
         self.votes = pred
         if pred >= 0.55:
             self.label = True
