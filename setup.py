@@ -1,12 +1,14 @@
-from setuptools import setup
+import setuptools
 
-setup(name='ppaxe',
+setuptools.setup(name='ppaxe',
       version='0.1',
       description='PPI extractor from PubMed articles',
       url='http://github.com/scastlara/ppaxe',
       author='S. Castillo-Lara',
       author_email='s.cast.lara@gmail.com',
       license='GPL-3.0',
-      packages=['ppaxe'],
+      include_package_data=True,
+      packages=setuptools.find_packages(),
+      package_data = { 'ppaxe' : ['data/RF_scikit.pkl']},
       zip_safe=False)
 
