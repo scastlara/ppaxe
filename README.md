@@ -30,7 +30,7 @@ pip install ppaxe
 To run the tests:
 
 ```
-python -m pytest ppaxe/tests
+python -m pytest tests
 ```
 
 ## Authors
