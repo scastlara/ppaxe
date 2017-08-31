@@ -3,6 +3,7 @@
 
 -----
 
+# PP-axe
 
 Tool to retrieve protein-protein interactions and calculate protein/gene symbol ocurrence in the scientific literature (PubMed & PubMedCentral).
 
@@ -30,7 +31,7 @@ pip install ppaxe
 To run the tests:
 
 ```
-python -m pytest tests
+python -m pytest ppaxe/tests
 ```
 
 ## Authors
@@ -40,4 +41,4 @@ python -m pytest tests
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+This project is licensed under the GNU GPL3 license - see the [LICENSE](LICENSE) file for details
