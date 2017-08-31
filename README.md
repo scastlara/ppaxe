@@ -29,6 +29,14 @@ pip install ppaxe
 In order to use the package you will need a StanfordCoreNLP server setup with
  the [Protein/gene Tagger](https://compgen.bio.ub.edu). By default, it will assume it is available at localhost:9000. If you want to change the address you can do it as follows:
 
+* **Start the server**
+
+```
+# Change the location of the ner tagger in server.properties manually
+java -mx10000m -cp ./stanford-corenlp-3.8.0.jar:stanford-english-corenlp-2017-06-09-models.jar edu.stanford.nlp.pipeline.StanfordCoreNLPServer -port 9000 -serverProperties ppaxe/data/server.properties
+```
+
+* **Use the ppaxe package**
  ```py
 from ppaxe import core
 from pycorenlp import StanfordCoreNLP
