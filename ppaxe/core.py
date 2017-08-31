@@ -15,7 +15,7 @@ import math
 import sys
 import ppaxe.feature_names as fn
 import pkg_resources
-import pickle
+import cPickle as pickle
 from scipy import sparse
 import logging
 
