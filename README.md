@@ -27,7 +27,7 @@ pip install ppaxe
 ```
 
 In order to use the package you will need a StanfordCoreNLP server setup with
- the [Protein/gene Tagger ]("https://compgen.bio.ub.edu"). By default, it will assume it is available at localhost:9000. If you want to change the address you can do it as follows:
+ the [Protein/gene Tagger](https://compgen.bio.ub.edu). By default, it will assume it is available at localhost:9000. If you want to change the address you can do it as follows:
 
  ```py
 from ppaxe import core
