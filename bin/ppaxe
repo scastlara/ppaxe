@@ -11,6 +11,8 @@ import os
 import logging as log
 import time
 from datetime import datetime
+from pycorenlp import StanfordCoreNLP
+
 
 # OPTIONS
 def get_options():
@@ -47,6 +49,12 @@ def get_options():
         '-v', '--verbose',
         help="Increase output verbosity.",
         action="store_true"
+    )
+
+    parser.add_argument(
+        '-i', '--ip',
+        help="Change the IP adress of the StanfordCoreNLP server. Default: http://localhost:9000",
+        default="http://localhost:9000"
     )
 
     try:
@@ -121,6 +129,10 @@ def main():
     start_time = time.time()
     # OPTIONS
     options = get_options()
+    try:
+        core.NLP = StanfordCoreNLP(options.ip)
+    except:
+        log.critical("Can't connect to StanfordCoreNLP server at %s", options.ip)
     if options.verbose:
         log.basicConfig(format="%(levelname)s: %(message)s", level=log.INFO)
         log.getLogger("requests").setLevel(log.WARNING)
