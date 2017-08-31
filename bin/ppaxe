@@ -48,7 +48,14 @@ def get_options():
         help="Increase output verbosity.",
         action="store_true"
     )
-    return parser
+
+    try:
+        options = parser.parse_args()
+    except argparse.ArgumentError:
+        parser.print_help()
+        sys.exit(0)
+
+    return options
 
 def read_identifiers(filename):
     '''
@@ -66,18 +73,54 @@ def read_identifiers(filename):
 
     return list(set(pmids))
 
+def get_ppi(options, start_time, pmids):
+    '''
+    Gets protein-protein interactions
+    '''
+    log.info("%s identifiers read.", len(pmids))
+    query = core.PMQuery(ids=pmids, database=options.database)
+    query.get_articles()
+    log.info("%s articles found", len(query.articles))
+    stats = dict({
+        'total_articles':   0,
+        'total_sentences':  0,
+        'total_candidates': 0,
+        'total_interacts':  0
+    })
+    for article in query:
+        if stats['total_articles'] % 5 == 0:
+            sys.stdout.flush()
+            log.info(
+                """~%s seconds.\n      %s articles analyzed.\n      %s sentences analyzed.\n      %s candidates found.\n      %s interactions retrieved.
+                """, round(time.time() - start_time), stats['total_articles'], stats['total_sentences'], stats['total_candidates'], stats['total_interacts'])
+        stats['total_articles'] += 1
+        if options.database == "PUBMED":
+            source = "abstract"
+        else:
+            source = "fulltext"
+        article.extract_sentences(source=source)
+        for sentence in article.sentences:
+            stats['total_sentences'] += 1
+            sentence.annotate()
+            sentence.get_candidates()
+            for candidate in sentence.candidates:
+                stats['total_candidates'] += 1
+                candidate.predict()
+                if candidate.label is True:
+                    stats['total_interacts'] += 1
+                    sys.stdout.write(
+                        "%s\t%s\t%s\t%s\t%s\n" %
+                        (article.pmid, candidate.prot1.symbol, candidate.prot2.symbol, candidate.votes, sentence.to_html())
+                    )
+    return stats
+
 def main():
     '''
     Main function
     '''
     start_time = time.time()
     # OPTIONS
-    parser = get_options()
-    try:
-        options = parser.parse_args()
-    except argparse.ArgumentError:
-        parser.print_help()
-        sys.exit(0)
+    options = get_options()
     if options.verbose:
         log.basicConfig(format="%(levelname)s: %(message)s", level=log.INFO)
         log.getLogger("requests").setLevel(log.WARNING)
@@ -89,40 +132,14 @@ def main():
         log.basicConfig(format="%(levelname)s: %(message)s")
 
     # START THE PROGRAM
+    pmids = read_identifiers(options.pmids)
     if options.mode == "ppi":
-        pmids = read_identifiers(options.pmids)
-        log.info("%s identifiers read.", len(pmids))
-        query = core.PMQuery(ids=pmids, database=options.database)
-        query.get_articles()
-        log.info("%s articles found", len(query.articles))
-        total_articles   = 0
-        total_sentences  = 0
-        total_candidates = 0
-        total_interacts  = 0
-        for article in query:
-            if total_articles % 5 == 0:
-                sys.stdout.flush()
-                log.info(
-                    """~%s seconds.\n      %s articles analyzed.\n      %s sentences analyzed.\n      %s candidates found.\n      %s interactions retrieved.
-                    """, round(time.time() - start_time), total_articles, total_sentences, total_candidates, total_interacts)
-            total_articles += 1
-            article.extract_sentences()
-            for sentence in article.sentences:
-                total_sentences += 1
-                sentence.annotate()
-                sentence.get_candidates()
-                for candidate in sentence.candidates:
-                    total_candidates += 1
-                    candidate.predict()
-                    if candidate.label is True:
-                        total_interacts += 1
-                        sys.stdout.write(
-                            "%s\t%s\t%s\t%s\t%s\n" %
-                            (article.pmid, candidate.prot1.symbol, candidate.prot2.symbol, candidate.votes, sentence.to_html())
-                        )
-        log.info("Total sentences analyzed: %s")
-        log.info("Total candidates found: %s")
-        log.info("Total interactions retrieved: %s")
+        stats = get_ppi(options, start_time, pmids)
+        log.info("Total articles analyzed: %s", stats['total_articles'])
+        log.info("Total sentences analyzed: %s", stats['total_sentences'])
+        log.info("Total candidates found: %s", stats['total_candidates'])
+        log.info("Total interactions retrieved: %s", stats['total_interacts'])
+        log.info("Total time: ~%s seconds", round(time.time() - start_time))
         log.info("Program finished: %s", str(datetime.now()))
     else:
         print("Perform Gene/Protein symbol analysis")
