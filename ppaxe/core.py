@@ -119,13 +119,12 @@ class PMQuery(object):
                     try:
                         pmcid = article.getElementsByTagName('article-id')[1].firstChild.nodeValue
                     except:
-                        print(req.content)
                         sys.exit(0)
                         continue
-                    self.found.add(pmid)
                     body =  article.getElementsByTagName('body')
                     if len(body) == 0:
                         continue
+                    self.found.add(pmid)
                     paragraphs = body[0].getElementsByTagName('p')
                     fulltext = list()
                     for par in paragraphs:
@@ -140,8 +139,27 @@ class PMQuery(object):
             params = {
                     'id':      ",".join(self.ids),
                     'db':      'pubmed',
+                    'retmode': 'xml'
             }
             req = requests.get("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi", params=params)
+            if req.status_code == 200:
+                article_text = minidom.parseString(req.content)
+                articles = article_text.getElementsByTagName('PubmedArticle')
+                for article in articles:
+                    pmid = article.getElementsByTagName('PMID')[0]
+                    pmid_text =" ".join(t.nodeValue.encode('utf-8') for t in pmid.childNodes if t.nodeType == t.TEXT_NODE)
+                    abstracts = article.getElementsByTagName('AbstractText')
+                    abstract_text = list()
+                    for abst in abstracts:
+                        abstract_text.append(" ".join(t.nodeValue.encode('utf-8') for t in abst.childNodes if t.nodeType == t.TEXT_NODE))
+                    abstract_text = "\n".join(abstract_text)
+                    if not abstract_text.strip():
+                        continue
+                    self.found.add(pmid)
+                    self.articles.append(Article(pmid=pmid_text, abstract=abstract_text))
+                self.notfound = set(self.ids).difference(self.found)
+            else:
+                PubMedQueryError("Can't connect to PubMed...")
         else:
             logging.error('%s: Incorrect database. Choose "PMC" or "PUBMED"', self.database)
 
