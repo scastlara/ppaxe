@@ -17,6 +17,8 @@ import ppaxe.feature_names as fn
 import pkg_resources
 import pickle
 from scipy import sparse
+import logging
+
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -117,6 +119,8 @@ class PMQuery(object):
                     try:
                         pmcid = article.getElementsByTagName('article-id')[1].firstChild.nodeValue
                     except:
+                        print(req.content)
+                        sys.exit(0)
                         continue
                     self.found.add(pmid)
                     body =  article.getElementsByTagName('body')
@@ -138,6 +142,8 @@ class PMQuery(object):
                     'db':      'pubmed',
             }
             req = requests.get("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi", params=params)
+        else:
+            logging.error('%s: Incorrect database. Choose "PMC" or "PUBMED"', self.database)
 
     def __iter__(self):
         return iter(self.articles)

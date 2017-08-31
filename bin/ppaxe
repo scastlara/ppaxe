@@ -1,2 +1,132 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+'''
+PP-axe: command-line tool to retrieve protein-protein interactions
+from the scientific literature.
+'''
+
 from ppaxe import core
+import argparse
+import sys
+import os
+import logging as log
+import time
+from datetime import datetime
+
+# OPTIONS
+def get_options():
+    '''
+    Reads the options
+    '''
+    parser = argparse.ArgumentParser(description='''Command-line tool to retrieve protein-protein interactions
+    from the scientific literature.''')
+    parser.add_argument(
+        '-p','--pmids',
+        help='Text file with a list of PMids or PMCids', required=True
+    )
+    parser.add_argument(
+        '-d','--database',
+        help='Download whole articles from database "PMC", or only abstracts from "PUBMED".',
+        default="PUBMED"
+    )
+    parser.add_argument(
+        '-o', '--output',
+        help='Output file to print the retrieved interactions in tabular format. Default to STDOUT'
+    )
+    parser.add_argument(
+        '-m', '--mode',
+        help='''Type of analysis to perform: by default ppaxe will look for protein-protein interactions "ppi".
+                Can also be set to "symbols" to perform an analysis of the protein/gene symbols found on the
+                specified articles.''',
+        default="ppi"
+    )
+    parser.add_argument(
+    '-r', '--report',
+    help="Print pdf report with the specified name."
+    )
+    parser.add_argument(
+        '-v', '--verbose',
+        help="Increase output verbosity.",
+        action="store_true"
+    )
+    return parser
+
+def read_identifiers(filename):
+    '''
+    Reads PMC or PubMed identifiers from filename
+    '''
+    pmids = list()
+    if os.path.exists(filename):
+        with open(filename, "r") as f:
+            for line in f:
+                line = line.strip()
+                pmids.append(line)
+    else:
+        log.error("%s does not exist!", filename)
+        sys.exit(1)
+
+    return list(set(pmids))
+
+def main():
+    '''
+    Main function
+    '''
+    start_time = time.time()
+    # OPTIONS
+    parser = get_options()
+    try:
+        options = parser.parse_args()
+    except argparse.ArgumentError:
+        parser.print_help()
+        sys.exit(0)
+    if options.verbose:
+        log.basicConfig(format="%(levelname)s: %(message)s", level=log.INFO)
+        log.getLogger("requests").setLevel(log.WARNING)
+        log.getLogger("urllib3").setLevel(log.WARNING)
+        log.info("Program started: %s", str(datetime.now()))
+        log.info("Verbose output.")
+    else:
+        # Show only errors and warnings
+        log.basicConfig(format="%(levelname)s: %(message)s")
+
+    # START THE PROGRAM
+    if options.mode == "ppi":
+        pmids = read_identifiers(options.pmids)
+        log.info("%s identifiers read.", len(pmids))
+        query = core.PMQuery(ids=pmids, database=options.database)
+        query.get_articles()
+        log.info("%s articles found", len(query.articles))
+        total_articles   = 0
+        total_sentences  = 0
+        total_candidates = 0
+        total_interacts  = 0
+        for article in query:
+            if total_articles % 5 == 0:
+                sys.stdout.flush()
+                log.info(
+                    """~%s seconds.\n      %s articles analyzed.\n      %s sentences analyzed.\n      %s candidates found.\n      %s interactions retrieved.
+                    """, round(time.time() - start_time), total_articles, total_sentences, total_candidates, total_interacts)
+            total_articles += 1
+            article.extract_sentences()
+            for sentence in article.sentences:
+                total_sentences += 1
+                sentence.annotate()
+                sentence.get_candidates()
+                for candidate in sentence.candidates:
+                    total_candidates += 1
+                    candidate.predict()
+                    if candidate.label is True:
+                        total_interacts += 1
+                        sys.stdout.write(
+                            "%s\t%s\t%s\t%s\t%s\n" %
+                            (article.pmid, candidate.prot1.symbol, candidate.prot2.symbol, candidate.votes, sentence.to_html())
+                        )
+        log.info("Total sentences analyzed: %s")
+        log.info("Total candidates found: %s")
+        log.info("Total interactions retrieved: %s")
+        log.info("Program finished: %s", str(datetime.now()))
+    else:
+        print("Perform Gene/Protein symbol analysis")
+
+
+if __name__ == "__main__":
+    main()

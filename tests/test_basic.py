@@ -243,5 +243,3 @@ def test_prediction():
         sentence.candidates[0].compute_features()
         sentence.candidates[0].predict()
         assert(sentence.candidates[0].votes == 0.882)
-
-test_prediction()
