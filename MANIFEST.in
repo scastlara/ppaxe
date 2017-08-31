@@ -1,1 +1,1 @@
-include ppaxe/data/*pkl
+include ppaxe/data/RF_scikit.pkl
