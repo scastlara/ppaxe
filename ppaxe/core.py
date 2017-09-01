@@ -282,8 +282,7 @@ class Protein(object):
     Class for protein in sentences
     '''
     def __init__(self, symbol, positions, sentence):
-        # disambiguate first..?
-        self.disambiguate()
+        #self.disambiguate()
         self.symbol = symbol
         self.positions = positions
         self.sentence = sentence
@@ -295,7 +294,7 @@ class Protein(object):
         Method for disambiguating the gene
         (convert it to the approved symbol if possible)
         '''
-        pass
+        return self.symbol.upper()
 
     def __str__(self):
         return "%s found in positions %s" % (self.symbol, ":".join([ str(idx) for idx in self.positions ]))
@@ -679,6 +678,111 @@ class InteractionCandidate(object):
 
     def __str__(self):
         return "[%s] may interact with [%s]" % (self.prot1.symbol, self.prot2.symbol)
+
+
+class ReportSummary(object):
+    '''
+    Class for the report summary of the analysis
+    '''
+    def __init__(self, articles):
+        '''
+        Initialized either with a PMQuery object or with a list of Article objects
+        '''
+        try: # Check if articles is a PMQuery
+            self.articles = articles.articles
+        except AttributeError: # Not a PMQuery
+            self.articles = articles
+        self.protsummary  = ProteinSummary(self.articles)
+        self.graphsummary = GraphSummary(self.articles)
+
+    def make_report(self, outfile="report"):
+        '''
+        Makes all the necessary steps to make the report
+        '''
+        pass
+        # self.protsummary.makesummary()
+        # self.graphsummary.makesummary()
+        # self.write_markdown(outfile)
+        # self.create_pdf(outfile)
+
+
+    def write_markdown(self, outfile):
+        '''
+        Writes a markdown with the report to outfile.
+        '''
+        outfile = outfile + ".md"
+        with open(outfile, "w") as outf:
+            pass
+
+    def create_pdf(self, outfile):
+        '''
+        Creates a pdf out of a markdown file
+        '''
+        mdfile = outfile + ".md"
+        if not sys.path.isfile(mdfile):
+            self.write_markdown(outfile)
+        # Convert Markdown file to pdf
+
+
+
+class ProteinSummary(object):
+    '''
+    Class of the Protein summary for the pdf report.
+    Will have:
+        - Table with protein ocurrence in sentences, ppi...
+        - Mapping to uniprot identifiers when possible.
+        - Method to get the most common proteins.
+        - Protein p-value ocurrence (compared to all PubMed).
+    '''
+    def __init__(self, articles):
+        self.articles = articles
+        self.prot_table = dict()
+
+    def makesummary(self):
+        '''
+        Makes the summary
+        '''
+        for article in self.articles:
+            for sentence in article.sentences:
+                for prot in sentence.proteins:
+                    symbol = prot.disambiguate()
+                    if symbol not in self.prot_table:
+                        self.prot_table[symbol] = dict()
+                        self.prot_table[symbol]['totalcount'] = 0
+                        self.prot_table[symbol]['art_count']  = dict()
+                        self.prot_table[symbol]['int_count']  = dict()
+                        self.prot_table[symbol]['int_count']['left']  = 0
+                        self.prot_table[symbol]['int_count']['right'] = 0
+                    self.prot_table[symbol]['totalcount'] += 1
+                    if article.pmid not in self.prot_table[symbol]['art_count']:
+                        self.prot_table[symbol]['art_count'][article.pmid] = 0
+                    self.prot_table[symbol]['art_count'][article.pmid] += 1
+                for candidate in sentence.candidates:
+                    prot1 = candidate.prot1.disambiguate()
+                    prot2 = candidate.prot2.disambiguate()
+                    self.prot_table[prot1]['int_count']['left'] += 1
+                    self.prot_table[prot2]['int_count']['right'] += 1
+        print(self.prot_table)
+
+    def get_stat(self, prot, stat):
+        '''
+        Returns the desired statistic from prot_table for the specified protein.
+        '''
+
+
+class GraphSummary(object):
+    '''
+    Class of the Interactions/Graph summary for the pdf report.
+    Will have:
+        - The actual interactions.
+        - Degree plot.
+        - Interactions per Journal name plot.
+        - Interactions per year plot.
+        - Token Distance plot.
+        - Method to write a Cytoscape graph.
+    '''
+    def __init__(self, articles):
+        self.articles = articles
 
 
 # EXCEPTIONS
