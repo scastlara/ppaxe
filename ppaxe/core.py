@@ -790,6 +790,8 @@ class ProteinSummary(object):
             sort_lambda = lambda x: x[1]['int_count']['right']
         elif sorted_by == "right":
             sort_lambda = lambda x: x[1]['int_count']['right']
+        else:
+            raise KeyError("Can't sort by %s. Only 'totalcount', 'int_count', 'left' or 'right'.")
 
         table_str = self.__md_table_header()
         for protein in sorted(self.prot_table.items(), reverse=reverse, key=sort_lambda):
