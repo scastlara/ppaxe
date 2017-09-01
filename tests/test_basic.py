@@ -266,7 +266,7 @@ def test_summary_totalcount():
 
 def test_summary_intcount():
     '''
-    Tests totalcount of ProtSummary
+    Tests int_count of ProtSummary
     '''
     article_text = """
              MAPK seems to interact with chloroacetate esterase.
@@ -282,3 +282,30 @@ def test_summary_intcount():
     summary = core.ReportSummary([article])
     summary.protsummary.makesummary()
     assert(summary.protsummary.prot_table['MAPK']['int_count']['left'] == 2)
+
+
+def test_summary_prottable_tomd():
+    '''
+    Tests int_count of ProtSummary
+    '''
+    article_text = """
+             MAPK seems to interact with chloroacetate esterase.
+             However, MAPK is a better target for peroxydase.
+             The thing is, Schmidtea mediterranea is a good model organism because reasons.
+             However, cryoglobulin is better.
+         """
+    article = core.Article(pmid="1234", fulltext=article_text)
+    article.extract_sentences()
+    for sentence in article.sentences:
+        sentence.annotate()
+        sentence.get_candidates()
+    summary = core.ReportSummary([article])
+    summary.protsummary.makesummary()
+    thetable = summary.protsummary.table_to_md(sorted_by="int_count")
+    reftable = ("| PROT_SYMBOL | TOTAL_COUNT | INT_COUNT | LEFT_COUNT | RIGHT_COUNT | \n" +
+               "|-----|-----|-----|-----|-----|\n" +
+               "| MAPK | 2 | 2 | 2 | 0  |\n" +
+               "| CHLOROACETATE ESTERASE | 1 | 1 | 0 | 1  |\n" +
+               "| PEROXYDASE | 1 | 1 | 0 | 1  |\n" +
+               "| CRYOGLOBULIN | 1 | 0 | 0 | 0  |")
+    assert(thetable == reftable)

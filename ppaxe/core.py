@@ -763,6 +763,45 @@ class ProteinSummary(object):
                     self.prot_table[prot1]['int_count']['left'] += 1
                     self.prot_table[prot2]['int_count']['right'] += 1
 
+    def __md_table_header(self):
+        '''
+        Returns the header of the markdown protein table as a list
+        '''
+        colnames = ["PROT_SYMBOL","TOTAL_COUNT","INT_COUNT", "LEFT_COUNT", "RIGHT_COUNT"]
+        table_str = ["| "]
+        for colname in colnames:
+            table_str.append(colname)
+            table_str.append(" | ")
+        table_str.append("\n|-----|")
+        for i in range(0, len(colnames) - 1):
+            table_str.append("-----|")
+        return table_str
+
+    def table_to_md(self, sorted_by="totalcount", reverse=True):
+        '''
+        Returns a string with the table in Markdown with proteins sorted by
+        sorted_by
+        '''
+        if sorted_by == "totalcount":
+            sort_lambda = lambda x: x[1]['totalcount']
+        elif sorted_by == "int_count":
+            sort_lambda = lambda x: x[1]['int_count']['right'] + x[1]['int_count']['left']
+        elif sorted_by == "left":
+            sort_lambda = lambda x: x[1]['int_count']['right']
+        elif sorted_by == "right":
+            sort_lambda = lambda x: x[1]['int_count']['right']
+
+        table_str = self.__md_table_header()
+        for protein in sorted(self.prot_table.items(), reverse=reverse, key=sort_lambda):
+            table_str.append("\n")
+            table_str.append("| %s " % protein[0])
+            table_str.append("| %s " % protein[1]['totalcount'])
+            table_str.append("| %s " % str(protein[1]['int_count']['right'] + protein[1]['int_count']['left']))
+            table_str.append("| %s " % protein[1]['int_count']['left'])
+            table_str.append("| %s " % protein[1]['int_count']['right'])
+            table_str.append(" |")
+        return "".join(table_str)
+
 class GraphSummary(object):
     '''
     Class of the Interactions/Graph summary for the pdf report.
