@@ -243,3 +243,42 @@ def test_prediction():
         sentence.candidates[0].compute_features()
         sentence.candidates[0].predict()
         assert(sentence.candidates[0].votes == 0.882)
+
+def test_summary_totalcount():
+    '''
+    Tests totalcount of ProtSummary
+    '''
+    article_text = """
+             MAPK seems to interact with chloroacetate esterase.
+             However, MAPK is a better target for peroxydase.
+             The thing is, Schmidtea mediterranea is a good model organism because reasons.
+             However, cryoglobulin is better.
+         """
+    article = core.Article(pmid="1234", fulltext=article_text)
+    article.extract_sentences()
+    for sentence in article.sentences:
+        sentence.annotate()
+        sentence.get_candidates()
+    summary = core.ReportSummary([article])
+    summary.protsummary.makesummary()
+    assert(summary.protsummary.prot_table['MAPK']['totalcount'] == 2)
+
+
+def test_summary_intcount():
+    '''
+    Tests totalcount of ProtSummary
+    '''
+    article_text = """
+             MAPK seems to interact with chloroacetate esterase.
+             However, MAPK is a better target for peroxydase.
+             The thing is, Schmidtea mediterranea is a good model organism because reasons.
+             However, cryoglobulin is better.
+         """
+    article = core.Article(pmid="1234", fulltext=article_text)
+    article.extract_sentences()
+    for sentence in article.sentences:
+        sentence.annotate()
+        sentence.get_candidates()
+    summary = core.ReportSummary([article])
+    summary.protsummary.makesummary()
+    assert(summary.protsummary.prot_table['MAPK']['int_count']['left'] == 2)

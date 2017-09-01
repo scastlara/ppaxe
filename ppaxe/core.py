@@ -762,13 +762,6 @@ class ProteinSummary(object):
                     prot2 = candidate.prot2.disambiguate()
                     self.prot_table[prot1]['int_count']['left'] += 1
                     self.prot_table[prot2]['int_count']['right'] += 1
-        print(self.prot_table)
-
-    def get_stat(self, prot, stat):
-        '''
-        Returns the desired statistic from prot_table for the specified protein.
-        '''
-
 
 class GraphSummary(object):
     '''
@@ -803,5 +796,11 @@ class ConnectionError(Exception):
     '''
     Exception raised when can't connect to online service such as PubMed
     or PubMedCentral
+    '''
+    pass
+
+class ProteinNotFound(Exception):
+    '''
+    Raised when protein is not in Summary class
     '''
     pass
