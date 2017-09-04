@@ -80,6 +80,14 @@ def take_farthest(mylist, mynumber):
     else:
         return mylist[-1]
 
+def make_md_row(items):
+    '''
+    Returns a markdown string with the items
+    '''
+    table_str = ["| ", " | ".join([str(x) for x in items]), " |\n"]
+    table_str = "".join(table_str)
+    return table_str
+
 def json_to_sentence(json):
     '''
     Takes a sentence in json dict an returns a string
@@ -766,13 +774,8 @@ class ProteinSummary(object):
         Returns the header of the markdown protein table as a list
         '''
         colnames = ["PROT_SYMBOL","TOTAL_COUNT","INT_COUNT", "LEFT_COUNT", "RIGHT_COUNT"]
-        table_str = ["| "]
-        for colname in colnames:
-            table_str.append(colname)
-            table_str.append(" | ")
-        table_str.append("\n|-----|")
-        for i in range(0, len(colnames) - 1):
-            table_str.append("-----|")
+        table_str = make_md_row(colnames)
+        table_str = table_str + make_md_row(["-----","-----","-----", "-----", "-----"])
         return table_str
 
     def table_to_md(self, sorted_by="totalcount", reverse=True):
@@ -791,15 +794,15 @@ class ProteinSummary(object):
         else:
             raise KeyError("Can't sort by %s. Only 'totalcount', 'int_count', 'left' or 'right'.")
 
-        table_str = self.__md_table_header()
+        table_str = [self.__md_table_header()]
         for protein in sorted(self.prot_table.items(), reverse=reverse, key=sort_lambda):
-            table_str.append("\n")
-            table_str.append("| %s " % protein[0])
-            table_str.append("| %s " % protein[1]['totalcount'])
-            table_str.append("| %s " % str(protein[1]['int_count']['right'] + protein[1]['int_count']['left']))
-            table_str.append("| %s " % protein[1]['int_count']['left'])
-            table_str.append("| %s " % protein[1]['int_count']['right'])
-            table_str.append(" |")
+            table_str.append(make_md_row([
+                protein[0],
+                protein[1]['totalcount'],
+                str(protein[1]['int_count']['right'] + protein[1]['int_count']['left']) ,
+                protein[1]['int_count']['left'],
+                protein[1]['int_count']['right']
+            ]))
         return "".join(table_str)
 
     def table_to_html(self, sorted_by="totalcount", reverse=True):
@@ -848,11 +851,37 @@ class GraphSummary(object):
                                 candidate.prot1.disambiguate(),
                                 candidate.prot2.symbol,
                                 candidate.prot2.disambiguate(),
-                                candidate.prot1.sentence.to_html()
+                                candidate.prot1.sentence.to_html(),
+                                article.pmid
                             ]
                         )
         self.uniqinteractions = len(self.uniqinteractions)
         self.interactions     = sorted(self.interactions, key=lambda x: x[0], reverse=True)
+
+    def __md_table_header(self):
+        '''
+        Returns the header of the markdown interaction table as a list
+        '''
+        colnames = [
+            "PROT_SYMBOL_A","PROT_SYMBOL_B",
+            "PROT_SYMBOL_A_OFFICIAL", "PROT_SYMBOL_B_OFFICIAL",
+            "CONFIDENCE", "SENTENCE", "ARTICLE"
+        ]
+        table_str = make_md_row(colnames)
+        table_str = table_str + make_md_row(["---", "---", "---", "---", "---", "---", "---"])
+        #print(table_str)
+
+    def int_table_to_md(self):
+        '''
+        Returns a string in markdown with the interactions sorted by votes/confidence
+        '''
+        table_str = [self.__md_table_header()]
+        for interaction in self.interactions:
+            pass
+            #table_str.append(make_md_row(
+            #
+            #))
+
 
 
 # EXCEPTIONS
