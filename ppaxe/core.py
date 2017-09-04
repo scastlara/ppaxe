@@ -794,7 +794,7 @@ class ReportSummary(object):
         '''
         outfile = outfile + ".html"
         stylesheet = "https://cdn.rawgit.com/scastlara/ppaxe/51b2e788/ppaxe/data/style.css"
-        cytotemplate = pkg_resources.resource_filename('ppaxe', 'data/cytoscape_template.js')
+        cytotemplate = "https://cdn.rawgit.com/scastlara/ppaxe/51b2e788/ppaxe/data/cytoscape_template.js"
         with open(outfile, "w") as outf:
             md_str = [
                 "# PP-axe Report",
