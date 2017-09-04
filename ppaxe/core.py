@@ -197,6 +197,17 @@ class Article(object):
         self.fulltext   = fulltext
         self.sentences  = list()
 
+    def predict_interactions(self, source="fulltext"):
+        '''
+        Simple wrapper method to avoid calls to multiple methods
+        '''
+        self.extract_sentences(source=source)
+        for sentence in self.sentences:
+            sentence.annotate()
+            sentence.get_candidates()
+            for candidate in sentence.candidates:
+                candidate.predict()
+
     def as_html(self):
         '''
         Writes tokenized sentences as HTML
