@@ -52,6 +52,46 @@ core.NLP = StanfordCoreNLP(your_new_adress)
 # Do whatever you want
  ```
 
+## Usage
+
+### ppaxe core classes
+
+```py
+from ppaxe import core as ppcore
+
+# Perform query to PubMedCentral
+pmids = ["28615517","28839427","28831451","28824332","28819371","28819357"]
+query = ppcore.PMQuery(ids=pmids, database="PMC")
+query.get_articles()
+
+# Retrieve interactions from text
+for article in query:
+    article.predict_interactions()
+
+# Iterate through predictions
+for article in query:
+    for sentence in article.sentences:
+        for candidate in sentence.candidates:
+            if candidate.label is True:
+                # We have an interaction
+                print("%s interacts with %s in article %s" % (candidate.prot1.symbol, candidate.prot2.symbol, article.pmid ))
+                print(candidate.to_html())
+
+# Print html report
+# Will create 'report_file.html'
+summary = ppcore.ReportSummary(query)
+summary.make_report("report_file")
+```
+
+### ppaxe script
+
+```sh
+# Will read PubMed ids in pmids.txt, predict the interactions
+# in their fulltext from PubMedCentral, and print a tabular output
+# and an html report
+bin/ppaxe -p pmids.txt -d PMC -v -o output.tbl -r report
+```
+
 ## Running the tests
 
 To run the tests:
