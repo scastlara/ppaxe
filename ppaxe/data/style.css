@@ -1,0 +1,55 @@
+h1,h2,h3,h4,h5 {
+    color: #545454;
+}
+
+body {
+    color: #545454;
+    background-color: rgb(201, 201, 201);
+}
+
+/* TABLE */
+.reptable {
+    overflow-x: scroll;
+    overflow-y: scroll;
+    height: 45%;
+}
+
+tr:hover {
+    background-color: #f5f5f5;
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+    font-size: 12px;
+    border: 1px solid #ddd;
+}
+
+th {
+    background-color: #F8F8F8;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+#cyt {
+    width: 100%;
+    border: 1px solid #ddd;
+    height: 65%;
+}
+
+#content {
+    width: 80%;
+    padding: 2%;
+    margin-left: 10%;
+    background-color: rgb(255, 255, 255);
+}
+
+.prot {
+    color: rgb(60, 150, 200);
+}
+
+.verb {
+    color: rgb(224, 82, 82);
+}
