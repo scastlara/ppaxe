@@ -180,4 +180,56 @@ def test_interaction_table_md():
             candidate.predict()
     summary = core.ReportSummary([article])
     summary.graphsummary.makesummary()
-    summary.graphsummary.int_table_to_md()
+    reftable = """<table>
+<thead>
+<tr>
+<th>CONFIDENCE</th>
+<th>PROT_SYMBOL_A</th>
+<th>PROT_SYMBOL_B</th>
+<th>PROT_SYMBOL_A_OFFICIAL</th>
+<th>PROT_SYMBOL_B_OFFICIAL</th>
+<th>SENTENCE</th>
+<th>ARTICLE</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.844</td>
+<td>Mapk4</td>
+<td>MAPK</td>
+<td>MAPK4</td>
+<td>MAPK</td>
+<td>1234</td>
+<td>However , <prot> Mapk4 </prot> interacts directly with <prot> MAPK </prot> .</td>
+</tr>
+<tr>
+<td>0.796</td>
+<td>CPP3</td>
+<td>Akt3</td>
+<td>CPP3</td>
+<td>AKT3</td>
+<td>1234</td>
+<td><prot> CPP3 </prot> is a molecular target of <prot> Akt3 </prot> .</td>
+</tr>
+<tr>
+<td>0.744</td>
+<td>MAPK</td>
+<td>MAPK4</td>
+<td>MAPK</td>
+<td>MAPK4</td>
+<td>1234</td>
+<td><prot> MAPK </prot> seems to interact with <prot> MAPK4 </prot> .</td>
+</tr>
+<tr>
+<td>0.714</td>
+<td>AKT3</td>
+<td>CPP3</td>
+<td>AKT3</td>
+<td>CPP3</td>
+<td>1234</td>
+<td><prot> AKT3 </prot> is also known to interact with <prot> CPP3 </prot> .</td>
+</tr>
+</tbody>
+</table>"""
+    htmltable = summary.graphsummary.table_to_html()
+    assert(htmltable == reftable)

@@ -863,26 +863,40 @@ class GraphSummary(object):
         Returns the header of the markdown interaction table as a list
         '''
         colnames = [
-            "PROT_SYMBOL_A","PROT_SYMBOL_B",
+            "CONFIDENCE", "PROT_SYMBOL_A","PROT_SYMBOL_B",
             "PROT_SYMBOL_A_OFFICIAL", "PROT_SYMBOL_B_OFFICIAL",
-            "CONFIDENCE", "SENTENCE", "ARTICLE"
+            "SENTENCE", "ARTICLE"
         ]
         table_str = make_md_row(colnames)
         table_str = table_str + make_md_row(["---", "---", "---", "---", "---", "---", "---"])
+        return table_str
         #print(table_str)
 
-    def int_table_to_md(self):
+    def table_to_md(self):
         '''
         Returns a string in markdown with the interactions sorted by votes/confidence
         '''
         table_str = [self.__md_table_header()]
         for interaction in self.interactions:
-            pass
-            #table_str.append(make_md_row(
-            #
-            #))
+            table_str.append(make_md_row([
+                interaction[0][0],
+                interaction[1],
+                interaction[3],
+                interaction[2],
+                interaction[4],
+                interaction[6],
+                interaction[5]
+            ]))
+        return "".join(table_str)
 
-
+    def table_to_html(self):
+        '''
+        Returns a string in html with the interactions sorted by votes/confidence
+        '''
+        mdtbl = self.table_to_md()
+        extensions = ['extra', 'smarty']
+        html = markdown.markdown(mdtbl, extensions=extensions, output_format='html5')
+        return html
 
 # EXCEPTIONS
 # ----------------------------------------------
