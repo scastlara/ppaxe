@@ -3,12 +3,10 @@
 
 -----
 
-# PP-axe
-
 Tool to retrieve **protein-protein interactions** and calculate protein/gene symbol ocurrence in the scientific literature (PubMed & PubMedCentral).
 
 
-### Prerequisites
+## Prerequisites
 
 
 ```
@@ -20,7 +18,7 @@ cPickle
 scipy
 ```
 
-### Installing
+## Installing
 
 You can install this package using _pip_
 
@@ -44,10 +42,10 @@ java -mx10000m -cp ./stanford-corenlp-3.8.0.jar:stanford-english-corenlp-2017-06
 
  ```py
 
-from ppaxe import core
+from ppaxe import core as ppcore
 from pycorenlp import StanfordCoreNLP
 
-core.NLP = StanfordCoreNLP(your_new_adress)
+ppcore.NLP = StanfordCoreNLP(your_new_adress)
 
 # Do whatever you want
  ```
