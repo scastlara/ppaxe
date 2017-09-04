@@ -380,9 +380,13 @@ class Sentence(object):
         state = 0
         html_list = list()
         for token in self.tokens:
+
             if state == 0:
                 if token['ner'] == "O":
-                    html_list.append(token['word'])
+                    if re.match('VB[DGNPZ]?', token['pos']):
+                        html_list.append('<span class="verb">%s</span>' % token['word'])
+                    else:
+                        html_list.append(token['word'])
                 else:
                     # Init of protein
                     state = 1
@@ -392,7 +396,10 @@ class Sentence(object):
                 if token['ner'] == "O":
                     # End of protein
                     html_list.append("</span>")
-                    html_list.append(token['word'])
+                    if re.match('VB[DGNPZ]?', token['pos']):
+                        html_list.append('<span class="verb">%s</span>' % token['word'])
+                    else:
+                        html_list.append(token['word'])
                     state = 0
                 else:
                     # Continues protein
