@@ -159,7 +159,7 @@ def test_sentence_to_html():
     for sentence in article.sentences:
         sentence.annotate()
         sentence.get_candidates()
-        assert(sentence.to_html() == "The transcription factor of <prot> THOC2 </prot> seems to be interacting with the <prot> nuclear receptor protein 2 </prot> .")
+        assert(sentence.to_html() == 'The transcription factor of <span class="prot"> THOC2 </span> seems to be interacting with the <span class="prot"> nuclear receptor protein 2 </span> .')
 
 def get_pos_count():
     '''

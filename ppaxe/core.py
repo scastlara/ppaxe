@@ -386,12 +386,12 @@ class Sentence(object):
                 else:
                     # Init of protein
                     state = 1
-                    html_list.append("<prot>")
+                    html_list.append('<span class="prot">')
                     html_list.append(token['word'])
             else:
                 if token['ner'] == "O":
                     # End of protein
-                    html_list.append("</prot>")
+                    html_list.append("</span>")
                     html_list.append(token['word'])
                     state = 0
                 else:
@@ -732,10 +732,14 @@ class ReportSummary(object):
             "* Unique interactions: %s" % self.graphsummary.uniqinteractions,
             "-----",
             "## Interactions",
+            '<div class="reptable">\n',
             self.graphsummary.table_to_md(),
+            '</div>',
             "-----",
             "## Proteins",
-            self.protsummary.table_to_md()
+            '<div class="reptable">\n',
+            self.protsummary.table_to_md(),
+            '</div>'
         ]
         md_str = "\n".join(md_str)
         extensions = ['extra', 'smarty']
@@ -807,7 +811,7 @@ class ProteinSummary(object):
         '''
         Returns the header of the markdown protein table as a list
         '''
-        colnames = ["PROT_SYMBOL","TOTAL_COUNT","INT_COUNT", "LEFT_COUNT", "RIGHT_COUNT"]
+        colnames = ["Protein","Total count","Int. count", "Left count", "Right count"]
         table_str = make_md_row(colnames)
         table_str = table_str + make_md_row(["-----","-----","-----", "-----", "-----"])
         return table_str
@@ -897,9 +901,9 @@ class GraphSummary(object):
         Returns the header of the markdown interaction table as a list
         '''
         colnames = [
-            "CONFIDENCE", "PROT_SYMBOL_A","PROT_SYMBOL_B",
-            "PROT_SYMBOL_A_OFFICIAL", "PROT_SYMBOL_B_OFFICIAL",
-            "ARTICLE", "SENTENCE"
+            "Confidence", "Protein (A)","Protein (B)",
+            "Off.symbol (A)", "Off.symbol (B)",
+            "PMid", "Sentence"
         ]
         table_str = make_md_row(colnames)
         table_str = table_str + make_md_row(["---", "---", "---", "---", "---", "---", "---"])
