@@ -793,7 +793,7 @@ class ReportSummary(object):
         Writes a markdown with the report to outfile.
         '''
         outfile = outfile + ".html"
-        stylesheet = pkg_resources.resource_filename('ppaxe',   'data/style.css')
+        stylesheet = "https://cdn.rawgit.com/scastlara/ppaxe/51b2e788/ppaxe/data/style.css"
         cytotemplate = pkg_resources.resource_filename('ppaxe', 'data/cytoscape_template.js')
         with open(outfile, "w") as outf:
             md_str = [
