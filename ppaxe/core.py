@@ -691,6 +691,59 @@ class InteractionCandidate(object):
         else:
             self.label = False
 
+    def to_html(self):
+        '''
+        Transforms candidate to html with only involved proteins tagged and only
+        verbs between proteins tagged
+        '''
+        init_coord  = self.between_idxes[0]
+        final_coord = self.between_idxes[1]
+        prot1_coords = [pos - 1 for pos in self.prot1.positions]
+        prot2_coords = [pos - 1 for pos in self.prot2.positions]
+        html_str = list()
+        between = range(init_coord, final_coord)
+        for i in range(0, len(self.prot1.sentence.tokens)):
+            token = self.prot1.sentence.tokens[i]
+            if i in between:
+                if re.match('VB[DGNPZ]?', token['pos']):
+                    # Verb in between
+                    html_str.append('<span class="verb">%s</span>' % token['word'])
+                else:
+                    # Normal word in between
+                    html_str.append(token['word'])
+            elif i in prot1_coords:
+                if i == prot1_coords[0]:
+                    # Start of protein 1
+                    html_str.append('<span class="prot"> %s' % token['word'])
+                    if i == prot1_coords[-1]:
+                        # Protein of length 1
+                        html_str.append('</span>')
+                elif i == prot1_coords[-1]:
+                    # End of protein of length > 1
+                    html_str.append('%s </span>' % token['word'])
+                else:
+                    # Middle of protein 1
+                    html_str.append(token['word'])
+            elif i in prot2_coords:
+                if i == prot2_coords[0]:
+                    # Start of protein 2
+                    html_str.append('<span class="prot"> %s' % token['word'])
+                    if i == prot2_coords[-1]:
+                        # Protein of length 2
+                        html_str.append('</span>')
+                elif i == prot2_coords[-1]:
+                    # End of protein of length > 2
+                    html_str.append('%s </span>' % token['word'])
+                else:
+                    # Middle of protein 2
+                    html_str.append(token['word'])
+            else:
+                # Neither verb nor protein
+                html_str.append(token['word'])
+        return " ".join(html_str)
+
+
+
     def __str__(self):
         return "[%s] may interact with [%s]" % (self.prot1.symbol, self.prot2.symbol)
 
@@ -728,42 +781,42 @@ class ReportSummary(object):
         '''
         outfile = outfile + ".html"
         stylesheet = pkg_resources.resource_filename('ppaxe', 'data/style.css')
-        #with open(outfile, "w") as outf:
-        #    pass
-        md_str = [
-            "# PP-axe Report",
-            "## Summary",
-            "* Articles analyzed: %s" % self.totalarticles,
-            "* Proteins found: %s" % self.protsummary.totalprots,
-            "* Interactions retrieved: %s" % self.graphsummary.numinteractions,
-            "* Unique interactions: %s" % self.graphsummary.uniqinteractions,
-            "-----",
-            "## Interactions",
-            '<div class="reptable">\n',
-            self.graphsummary.table_to_md(),
-            '</div>',
-            "-----",
-            "## Proteins",
-            '<div class="reptable">\n',
-            self.protsummary.table_to_md(),
-            '</div>'
-        ]
-        md_str = "\n".join(md_str)
-        extensions = ['extra', 'smarty']
-        html_body = markdown.markdown(md_str, extensions=extensions, output_format='html5')
-        total_html = [
-            '<html>',
-            '<head>',
-            '<link rel="stylesheet" type="text/css" href="%s">' % stylesheet,
-            '</head>',
-            '<body>',
-                '<div id="content">',
-                html_body,
+        with open(outfile, "w") as outf:
+            md_str = [
+                "# PP-axe Report",
+                "## Summary",
+                "* Articles analyzed: %s" % self.totalarticles,
+                "* Proteins found: %s" % self.protsummary.totalprots,
+                "* Interactions retrieved: %s" % self.graphsummary.numinteractions,
+                "* Unique interactions: %s" % self.graphsummary.uniqinteractions,
+                "-----",
+                "## Interactions",
+                '<div class="reptable">\n',
+                self.graphsummary.table_to_md(),
                 '</div>',
-            '</body>',
-            '<html>'
-        ]
-        print("".join(total_html))
+                "-----",
+                "## Proteins",
+                '<div class="reptable">\n',
+                self.protsummary.table_to_md(),
+                '</div>'
+            ]
+            md_str = "\n".join(md_str)
+            extensions = ['extra', 'smarty']
+            html_body = markdown.markdown(md_str, extensions=extensions, output_format='html5')
+            total_html = [
+                '<html>',
+                '<meta charset="utf-8" />',
+                '<head>',
+                '<link rel="stylesheet" type="text/css" href="%s">' % stylesheet,
+                '</head>',
+                '<body>',
+                    '<div id="content">',
+                    html_body,
+                    '</div>',
+                '</body>',
+                '<html>'
+            ]
+            outf.write("".join(total_html))
 
     def create_pdf(self, outfile):
         '''
@@ -829,7 +882,7 @@ class ProteinSummary(object):
         sorted_by
         '''
         if sorted_by == "totalcount":
-            sort_lambda = lambda x: x[1]['totalcount']
+            sort_lambda = lambda x: (x[1]['totalcount'], x[1]['int_count']['right'] + x[1]['int_count']['left'])
         elif sorted_by == "int_count":
             sort_lambda = lambda x: x[1]['int_count']['right'] + x[1]['int_count']['left']
         elif sorted_by == "left":
@@ -896,7 +949,7 @@ class GraphSummary(object):
                                 candidate.prot1.disambiguate(),
                                 candidate.prot2.symbol,
                                 candidate.prot2.disambiguate(),
-                                candidate.prot1.sentence.to_html(),
+                                candidate.to_html(),
                                 article.pmid
                             ]
                         )
@@ -929,7 +982,7 @@ class GraphSummary(object):
                 interaction[3],
                 interaction[2],
                 interaction[4],
-                interaction[6],
+                "[%s](https://www.ncbi.nlm.nih.gov/pubmed/?term=%s)" % (interaction[6], interaction[6]),
                 interaction[5]
             ]))
         return "".join(table_str)

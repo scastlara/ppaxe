@@ -243,3 +243,21 @@ def test_prediction():
         sentence.candidates[0].compute_features()
         sentence.candidates[0].predict()
         assert(sentence.candidates[0].votes == 0.882)
+
+def test_candidate_tohtml():
+    '''
+    Tests candidate to html conversion
+    '''
+    article_text = """
+        MAPK seems to interact with chloroacetate esterase.
+        However, MAPK is a better target for peroxydase.
+        Chloroacetate esterase domain 3 interacts with MAPK4.
+    """
+    article = core.Article(pmid="1234", fulltext=article_text)
+    article.extract_sentences()
+    for sentence in article.sentences:
+        sentence.annotate()
+        sentence.get_candidates()
+        sentence.candidates[0].compute_features()
+        sentence.candidates[0].predict()
+        sentence.candidates[0].to_html()

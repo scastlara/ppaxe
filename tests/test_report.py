@@ -65,7 +65,7 @@ def test_summary_prottable_tomd():
     summary.protsummary.makesummary()
     thetable = summary.protsummary.table_to_md(sorted_by="int_count")
     reftable = (
-    """| PROT_SYMBOL | TOTAL_COUNT | INT_COUNT | LEFT_COUNT | RIGHT_COUNT |
+    """| Protein | Total count | Int. count | Left count | Right count |
 | ----- | ----- | ----- | ----- | ----- |
 | MAPK | 2 | 2 | 2 | 0 |
 | CHLOROACETATE ESTERASE | 1 | 1 | 0 | 1 |
@@ -96,11 +96,11 @@ def test_summary_prottable_tohtml():
     reftable = """<table>
 <thead>
 <tr>
-<th>PROT_SYMBOL</th>
-<th>TOTAL_COUNT</th>
-<th>INT_COUNT</th>
-<th>LEFT_COUNT</th>
-<th>RIGHT_COUNT</th>
+<th>Protein</th>
+<th>Total count</th>
+<th>Int. count</th>
+<th>Left count</th>
+<th>Right count</th>
 </tr>
 </thead>
 <tbody>
@@ -183,13 +183,13 @@ def test_interaction_table_md():
     reftable = """<table>
 <thead>
 <tr>
-<th>CONFIDENCE</th>
-<th>PROT_SYMBOL_A</th>
-<th>PROT_SYMBOL_B</th>
-<th>PROT_SYMBOL_A_OFFICIAL</th>
-<th>PROT_SYMBOL_B_OFFICIAL</th>
-<th>ARTICLE</th>
-<th>SENTENCE</th>
+<th>Confidence</th>
+<th>Protein (A)</th>
+<th>Protein (B)</th>
+<th>Off.symbol (A)</th>
+<th>Off.symbol (B)</th>
+<th>PMid</th>
+<th>Sentence</th>
 </tr>
 </thead>
 <tbody>
@@ -199,8 +199,8 @@ def test_interaction_table_md():
 <td>MAPK</td>
 <td>MAPK4</td>
 <td>MAPK</td>
-<td>1234</td>
-<td>However , <prot> Mapk4 </prot> interacts directly with <prot> MAPK </prot> .</td>
+<td><a href="https://www.ncbi.nlm.nih.gov/pubmed/?term=1234">1234</a></td>
+<td>However , <span class="prot"> Mapk4 </span> <span class="verb">interacts</span> directly with <span class="prot"> MAPK </span> .</td>
 </tr>
 <tr>
 <td>0.796</td>
@@ -208,8 +208,8 @@ def test_interaction_table_md():
 <td>Akt3</td>
 <td>CPP3</td>
 <td>AKT3</td>
-<td>1234</td>
-<td><prot> CPP3 </prot> is a molecular target of <prot> Akt3 </prot> .</td>
+<td><a href="https://www.ncbi.nlm.nih.gov/pubmed/?term=1234">1234</a></td>
+<td><span class="prot"> CPP3 </span> <span class="verb">is</span> a molecular target of <span class="prot"> Akt3 </span> .</td>
 </tr>
 <tr>
 <td>0.744</td>
@@ -217,8 +217,8 @@ def test_interaction_table_md():
 <td>MAPK4</td>
 <td>MAPK</td>
 <td>MAPK4</td>
-<td>1234</td>
-<td><prot> MAPK </prot> seems to interact with <prot> MAPK4 </prot> .</td>
+<td><a href="https://www.ncbi.nlm.nih.gov/pubmed/?term=1234">1234</a></td>
+<td><span class="prot"> MAPK </span> <span class="verb">seems</span> to <span class="verb">interact</span> with <span class="prot"> MAPK4 </span> .</td>
 </tr>
 <tr>
 <td>0.714</td>
@@ -226,8 +226,8 @@ def test_interaction_table_md():
 <td>CPP3</td>
 <td>AKT3</td>
 <td>CPP3</td>
-<td>1234</td>
-<td><prot> AKT3 </prot> is also known to interact with <prot> CPP3 </prot> .</td>
+<td><a href="https://www.ncbi.nlm.nih.gov/pubmed/?term=1234">1234</a></td>
+<td><span class="prot"> AKT3 </span> <span class="verb">is</span> also <span class="verb">known</span> to <span class="verb">interact</span> with <span class="prot"> CPP3 </span> .</td>
 </tr>
 </tbody>
 </table>"""
@@ -243,8 +243,12 @@ def test_simple_report():
              However, Mapk4 interacts directly with MAPK.
              CPP3 is a molecular target of Akt3.
              AKT3 is also known to interact with CPP3.
+             Upon association with the destruction complex, GSK3β phosphorylates β-catenin, thus priming it for ubiquitination by β-TRCP and degradation by the proteasome.
+             Tankyrase recognizes its substrate proteins through the multiple ankyrin repeat cluster domains for PARylation and is involved in telomere homeostasis and in other biological events such as mitosis.
+             p70S6K and 4E-BP1 are regulated by the mTORC1 complex.
+             More research into this area will help guide the research community in understanding the role that PKG plays in modulating Wnt / β-catenin signaling.
          """
-    article = core.Article(pmid="1234", fulltext=article_text)
+    article = core.Article(pmid="28615517", fulltext=article_text)
     article.extract_sentences()
     for sentence in article.sentences:
         sentence.annotate()
