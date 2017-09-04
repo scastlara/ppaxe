@@ -717,42 +717,47 @@ class InteractionCandidate(object):
         between = range(init_coord, final_coord)
         for i in range(0, len(self.prot1.sentence.tokens)):
             token = self.prot1.sentence.tokens[i]
+            word = token['word']
+            word = re.sub("-LRB-", "(", word)
+            word = re.sub("-RRB-", ")", word)
+            word = re.sub("-LSB-", "[", word)
+            word = re.sub("-RSB-", "]", word)
             if i in between:
                 if re.match('VB[DGNPZ]?', token['pos']):
                     # Verb in between
-                    html_str.append('<span class="verb">%s</span>' % token['word'])
+                    html_str.append('<span class="verb">%s</span>' % word)
                 else:
                     # Normal word in between
-                    html_str.append(token['word'])
+                    html_str.append(word)
             elif i in prot1_coords:
                 if i == prot1_coords[0]:
                     # Start of protein 1
-                    html_str.append('<span class="prot"> %s' % token['word'])
+                    html_str.append('<span class="prot"> %s' % word)
                     if i == prot1_coords[-1]:
                         # Protein of length 1
                         html_str.append('</span>')
                 elif i == prot1_coords[-1]:
                     # End of protein of length > 1
-                    html_str.append('%s </span>' % token['word'])
+                    html_str.append('%s </span>' % word)
                 else:
                     # Middle of protein 1
-                    html_str.append(token['word'])
+                    html_str.append(word)
             elif i in prot2_coords:
                 if i == prot2_coords[0]:
                     # Start of protein 2
-                    html_str.append('<span class="prot"> %s' % token['word'])
+                    html_str.append('<span class="prot"> %s' % word)
                     if i == prot2_coords[-1]:
                         # Protein of length 2
                         html_str.append('</span>')
                 elif i == prot2_coords[-1]:
                     # End of protein of length > 2
-                    html_str.append('%s </span>' % token['word'])
+                    html_str.append('%s </span>' % word)
                 else:
                     # Middle of protein 2
-                    html_str.append(token['word'])
+                    html_str.append(word)
             else:
                 # Neither verb nor protein
-                html_str.append(token['word'])
+                html_str.append(word)
         return " ".join(html_str)
 
 
