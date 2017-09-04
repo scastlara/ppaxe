@@ -309,3 +309,64 @@ def test_summary_prottable_tomd():
                "| PEROXYDASE | 1 | 1 | 0 | 1  |\n" +
                "| CRYOGLOBULIN | 1 | 0 | 0 | 0  |")
     assert(thetable == reftable)
+
+def test_summary_prottable_tohtml():
+    '''
+    Tests int_count of ProtSummary
+    '''
+    article_text = """
+             MAPK seems to interact with chloroacetate esterase.
+             However, MAPK is a better target for peroxydase.
+             The thing is, Schmidtea mediterranea is a good model organism because reasons.
+             However, cryoglobulin is better.
+         """
+    article = core.Article(pmid="1234", fulltext=article_text)
+    article.extract_sentences()
+    for sentence in article.sentences:
+        sentence.annotate()
+        sentence.get_candidates()
+    summary = core.ReportSummary([article])
+    summary.protsummary.makesummary()
+    thetable = summary.protsummary.table_to_html(sorted_by="int_count")
+    reftable = """<table>
+<thead>
+<tr>
+<th>PROT_SYMBOL</th>
+<th>TOTAL_COUNT</th>
+<th>INT_COUNT</th>
+<th>LEFT_COUNT</th>
+<th>RIGHT_COUNT</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MAPK</td>
+<td>2</td>
+<td>2</td>
+<td>2</td>
+<td>0</td>
+</tr>
+<tr>
+<td>CHLOROACETATE ESTERASE</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr>
+<td>PEROXYDASE</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr>
+<td>CRYOGLOBULIN</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>"""
+    assert(thetable == reftable)

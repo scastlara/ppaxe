@@ -18,7 +18,7 @@ import pkg_resources
 import cPickle as pickle
 from scipy import sparse
 import logging
-
+import markdown
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -803,6 +803,16 @@ class ProteinSummary(object):
             table_str.append("| %s " % protein[1]['int_count']['right'])
             table_str.append(" |")
         return "".join(table_str)
+
+    def table_to_html(self, sorted_by="totalcount", reverse=True):
+        '''
+        Returns an html string with the desired count table by converting
+        the markdown table to html
+        '''
+        mdtbl = self.table_to_md(sorted_by=sorted_by, reverse=reverse)
+        extensions = ['extra', 'smarty']
+        html = markdown.markdown(mdtbl, extensions=extensions, output_format='html5')
+        return html
 
 class GraphSummary(object):
     '''
