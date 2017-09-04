@@ -15,6 +15,9 @@ Tool to retrieve **protein-protein interactions** and calculate protein/gene sym
 xml.dom
 numpy
 pycorenlp
+markdown
+cPickle
+scipy
 ```
 
 ### Installing
@@ -54,7 +57,7 @@ core.NLP = StanfordCoreNLP(your_new_adress)
 To run the tests:
 
 ```
-python -m pytest ppaxe/tests
+python -m pytest -v tests
 ```
 
 ## Authors
