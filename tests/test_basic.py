@@ -370,3 +370,27 @@ def test_summary_prottable_tohtml():
 </tbody>
 </table>"""
     assert(thetable == reftable)
+
+def test_interaction_list():
+    '''
+    Tests if GraphSummary.makesummary() creates the interaction list correctly
+    '''
+    article_text = """
+             MAPK seems to interact with MAPK4.
+             However, Mapk4 interacts directly with MAPK.
+             CPP3 is a molecular target of Akt3.
+             AKT3 is also known to interact with CPP3.
+         """
+    article = core.Article(pmid="1234", fulltext=article_text)
+    article.extract_sentences()
+    for sentence in article.sentences:
+        sentence.annotate()
+        sentence.get_candidates()
+        for candidate in sentence.candidates:
+            candidate.predict()
+    summary = core.ReportSummary([article])
+    summary.graphsummary.makesummary()
+    assert(
+        len(summary.graphsummary.interactions) == 4 and
+        summary.graphsummary.uniqinteractions == 2
+    )

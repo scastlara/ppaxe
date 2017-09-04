@@ -723,8 +723,6 @@ class ReportSummary(object):
             self.write_markdown(outfile)
         # Convert Markdown file to pdf
 
-
-
 class ProteinSummary(object):
     '''
     Class of the Protein summary for the pdf report.
@@ -740,7 +738,7 @@ class ProteinSummary(object):
 
     def makesummary(self):
         '''
-        Makes the summary
+        Makes the summary of the proteins found using the NER
         '''
         for article in self.articles:
             for sentence in article.sentences:
@@ -827,6 +825,34 @@ class GraphSummary(object):
     '''
     def __init__(self, articles):
         self.articles = articles
+        self.interactions = list()
+        self.numinteractions = 0
+        self.uniqinteractions = set()
+
+    def makesummary(self):
+        '''
+        Makes the summary of the interactions retrieved
+        '''
+        for article in self.articles:
+            for sentence in article.sentences:
+                for candidate in sentence.candidates:
+                    if candidate.label is True:
+                        self.numinteractions += 1
+                        self.uniqinteractions.add(
+                            tuple(sorted([candidate.prot1.disambiguate(), candidate.prot2.disambiguate(),]))
+                        )
+                        self.interactions.append(
+                            [
+                                candidate.votes,
+                                candidate.prot1.symbol,
+                                candidate.prot1.disambiguate(),
+                                candidate.prot2.symbol,
+                                candidate.prot2.disambiguate(),
+                                candidate.prot1.sentence.to_html()
+                            ]
+                        )
+        self.uniqinteractions = len(self.uniqinteractions)
+        self.interactions     = sorted(self.interactions, key=lambda x: x[0], reverse=True)
 
 
 # EXCEPTIONS
