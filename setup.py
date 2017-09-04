@@ -10,6 +10,6 @@ setuptools.setup(name='ppaxe',
       scripts=['bin/ppaxe'],
       include_package_data=True,
       packages=setuptools.find_packages(),
-      package_data = { 'ppaxe' : ['data/RF_scikit.pkl']},
+      package_data = { 'ppaxe' : ['data/RF_scikit.pkl', 'data/style.css']},
       zip_safe=False)
 

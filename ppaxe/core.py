@@ -702,25 +702,57 @@ class ReportSummary(object):
             self.articles = articles
         self.protsummary  = ProteinSummary(self.articles)
         self.graphsummary = GraphSummary(self.articles)
+        self.totalarticles = len(self.articles)
 
     def make_report(self, outfile="report"):
         '''
         Makes all the necessary steps to make the report
         '''
-        pass
-        # self.protsummary.makesummary()
-        # self.graphsummary.makesummary()
+        self.protsummary.makesummary()
+        self.graphsummary.makesummary()
+        self.write_html(outfile)
         # self.write_markdown(outfile)
         # self.create_pdf(outfile)
 
 
-    def write_markdown(self, outfile):
+    def write_html(self, outfile):
         '''
         Writes a markdown with the report to outfile.
         '''
-        outfile = outfile + ".md"
-        with open(outfile, "w") as outf:
-            pass
+        outfile = outfile + ".html"
+        stylesheet = pkg_resources.resource_filename('ppaxe', 'data/style.css')
+        #with open(outfile, "w") as outf:
+        #    pass
+        md_str = [
+            "# PP-axe Report",
+            "## Summary",
+            "* Articles analyzed: %s" % self.totalarticles,
+            "* Proteins found: %s" % self.protsummary.totalprots,
+            "* Interactions retrieved: %s" % self.graphsummary.numinteractions,
+            "* Unique interactions: %s" % self.graphsummary.uniqinteractions,
+            "-----",
+            "## Interactions",
+            self.graphsummary.table_to_md(),
+            "-----",
+            "## Proteins",
+            self.protsummary.table_to_md()
+        ]
+        md_str = "\n".join(md_str)
+        extensions = ['extra', 'smarty']
+        html_body = markdown.markdown(md_str, extensions=extensions, output_format='html5')
+        total_html = [
+            '<html>',
+            '<head>',
+            '<link rel="stylesheet" type="text/css" href="%s">' % stylesheet,
+            '</head>',
+            '<body>',
+                '<div id="content">',
+                html_body,
+                '</div>',
+            '</body>',
+            '<html>'
+        ]
+        print("".join(total_html))
 
     def create_pdf(self, outfile):
         '''
@@ -743,6 +775,7 @@ class ProteinSummary(object):
     def __init__(self, articles):
         self.articles = articles
         self.prot_table = dict()
+        self.totalprots = 0
 
     def makesummary(self):
         '''
@@ -753,6 +786,7 @@ class ProteinSummary(object):
                 for prot in sentence.proteins:
                     symbol = prot.disambiguate()
                     if symbol not in self.prot_table:
+                        self.totalprots += 1
                         self.prot_table[symbol] = dict()
                         self.prot_table[symbol]['totalcount'] = 0
                         self.prot_table[symbol]['art_count']  = dict()
@@ -865,7 +899,7 @@ class GraphSummary(object):
         colnames = [
             "CONFIDENCE", "PROT_SYMBOL_A","PROT_SYMBOL_B",
             "PROT_SYMBOL_A_OFFICIAL", "PROT_SYMBOL_B_OFFICIAL",
-            "SENTENCE", "ARTICLE"
+            "ARTICLE", "SENTENCE"
         ]
         table_str = make_md_row(colnames)
         table_str = table_str + make_md_row(["---", "---", "---", "---", "---", "---", "---"])

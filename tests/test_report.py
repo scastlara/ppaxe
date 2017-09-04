@@ -188,8 +188,8 @@ def test_interaction_table_md():
 <th>PROT_SYMBOL_B</th>
 <th>PROT_SYMBOL_A_OFFICIAL</th>
 <th>PROT_SYMBOL_B_OFFICIAL</th>
-<th>SENTENCE</th>
 <th>ARTICLE</th>
+<th>SENTENCE</th>
 </tr>
 </thead>
 <tbody>
@@ -233,3 +233,23 @@ def test_interaction_table_md():
 </table>"""
     htmltable = summary.graphsummary.table_to_html()
     assert(htmltable == reftable)
+
+def test_simple_report():
+    '''
+    Test first version of report
+    '''
+    article_text = """
+             MAPK seems to interact with MAPK4.
+             However, Mapk4 interacts directly with MAPK.
+             CPP3 is a molecular target of Akt3.
+             AKT3 is also known to interact with CPP3.
+         """
+    article = core.Article(pmid="1234", fulltext=article_text)
+    article.extract_sentences()
+    for sentence in article.sentences:
+        sentence.annotate()
+        sentence.get_candidates()
+        for candidate in sentence.candidates:
+            candidate.predict()
+    summary = core.ReportSummary([article])
+    summary.make_report()
