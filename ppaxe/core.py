@@ -780,20 +780,28 @@ class ReportSummary(object):
         Writes a markdown with the report to outfile.
         '''
         outfile = outfile + ".html"
-        stylesheet = pkg_resources.resource_filename('ppaxe', 'data/style.css')
+        stylesheet = pkg_resources.resource_filename('ppaxe',   'data/style.css')
+        cytotemplate = pkg_resources.resource_filename('ppaxe', 'data/cytoscape_template.js')
         with open(outfile, "w") as outf:
             md_str = [
                 "# PP-axe Report",
                 "## Summary",
-                "* Articles analyzed: %s" % self.totalarticles,
-                "* Proteins found: %s" % self.protsummary.totalprots,
-                "* Interactions retrieved: %s" % self.graphsummary.numinteractions,
-                "* Unique interactions: %s" % self.graphsummary.uniqinteractions,
+                '<div class="sumtable">\n',
+                '| | |',
+                '|--|--|',
+                "| Articles analyzed | %s |" % self.totalarticles,
+                "| Proteins found | %s |" % self.protsummary.totalprots,
+                "| Interactions retrieved | %s |" % self.graphsummary.numinteractions,
+                "| Unique interactions | %s |" % self.graphsummary.uniqinteractions_count,
+                '\n</div>',
                 "-----",
                 "## Interactions",
                 '<div class="reptable">\n',
                 self.graphsummary.table_to_md(),
                 '</div>',
+                "-----",
+                "## Graph",
+                '<div id="cyt"></div>\n'
                 "-----",
                 "## Proteins",
                 '<div class="reptable">\n',
@@ -813,6 +821,30 @@ class ReportSummary(object):
                     '<div id="content">',
                     html_body,
                     '</div>',
+                    '<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>\n',
+                    '<script src="%s"></script>\n' % cytotemplate,
+                    '<script src="https://cdn.rawgit.com/cytoscape/cytoscape.js-qtip/2.7.0/cytoscape-qtip.js"></script>\n',
+                    '''
+                    <script>
+                        graphelements = %s;
+                        cy.load(graphelements);
+                        cy.layout( { name: 'cose' } );
+                        cy.nodes().qtip({
+                            content: 'Hello!',
+                            position: {
+                            my: 'top center',
+                            at: 'bottom center'
+                        },
+                        style: {
+                            classes: 'qtip-bootstrap',
+                            tip: {
+                                width: 16,
+                                height: 8
+                            }
+                        }
+                    });
+                    </script>
+                    ''' % self.graphsummary.graph_to_json(),
                 '</body>',
                 '<html>'
             ]
@@ -929,6 +961,7 @@ class GraphSummary(object):
         self.interactions = list()
         self.numinteractions = 0
         self.uniqinteractions = set()
+        self.uniqinteractions_count = 0
 
     def makesummary(self):
         '''
@@ -940,7 +973,7 @@ class GraphSummary(object):
                     if candidate.label is True:
                         self.numinteractions += 1
                         self.uniqinteractions.add(
-                            tuple(sorted([candidate.prot1.disambiguate(), candidate.prot2.disambiguate(),]))
+                            tuple(sorted([candidate.prot1.disambiguate(), candidate.prot2.disambiguate()]))
                         )
                         self.interactions.append(
                             [
@@ -953,7 +986,7 @@ class GraphSummary(object):
                                 article.pmid
                             ]
                         )
-        self.uniqinteractions = len(self.uniqinteractions)
+        self.uniqinteractions_count = len(self.uniqinteractions)
         self.interactions     = sorted(self.interactions, key=lambda x: x[0], reverse=True)
 
     def __md_table_header(self):
@@ -995,6 +1028,23 @@ class GraphSummary(object):
         extensions = ['extra', 'smarty']
         html = markdown.markdown(mdtbl, extensions=extensions, output_format='html5')
         return html
+
+    def graph_to_json(self):
+        '''
+        Returns a json string with the graph prepared for cytoscape
+        '''
+        json_nodes = list(["nodes: ["])
+        json_ints  = list(["edges: ["])
+        total_json = list()
+        for interaction in self.interactions:
+            json_nodes.append("{ data: { id: '%s', name: '%s', colorNODE: '#4b849d' } }," % (interaction[2], interaction[2]))
+            json_nodes.append("{ data: { id: '%s', name: '%s', colorNODE: '#4b849d' } }," % (interaction[4], interaction[4]))
+            json_ints.append("{ data: { id: '%s-%s', source: '%s', target: '%s', confidence:'%s', colorEDGE: '#cdbb44', sentence: '%s' }}," % ( interaction[2], interaction[4], interaction[2], interaction[4], interaction[0][0], interaction[5]))
+        json_nodes.append("], ")
+        json_ints.append("]\n")
+        total_json = "{\n" + "\n".join(json_nodes) + "\n".join(json_ints) + "\n}"
+
+        return total_json
 
 # EXCEPTIONS
 # ----------------------------------------------

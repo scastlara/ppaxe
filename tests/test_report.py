@@ -157,7 +157,7 @@ def test_interaction_list():
     summary.graphsummary.makesummary()
     assert(
         len(summary.graphsummary.interactions) == 4 and
-        summary.graphsummary.uniqinteractions == 2
+        summary.graphsummary.uniqinteractions_count == 2
     )
 
 
