@@ -41,6 +41,8 @@ def test_summary_intcount():
     for sentence in article.sentences:
         sentence.annotate()
         sentence.get_candidates()
+        for candidate in sentence.candidates:
+            candidate.predict()
     summary = core.ReportSummary([article])
     summary.protsummary.makesummary()
     assert(summary.protsummary.prot_table['MAPK']['int_count']['left'] == 2)
@@ -61,6 +63,8 @@ def test_summary_prottable_tomd():
     for sentence in article.sentences:
         sentence.annotate()
         sentence.get_candidates()
+        for candidate in sentence.candidates:
+            candidate.predict()
     summary = core.ReportSummary([article])
     summary.protsummary.makesummary()
     thetable = summary.protsummary.table_to_md(sorted_by="int_count")
@@ -90,6 +94,8 @@ def test_summary_prottable_tohtml():
     for sentence in article.sentences:
         sentence.annotate()
         sentence.get_candidates()
+        for candidate in sentence.candidates:
+            candidate.predict()
     summary = core.ReportSummary([article])
     summary.protsummary.makesummary()
     thetable = summary.protsummary.table_to_html(sorted_by="int_count")

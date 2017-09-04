@@ -43,7 +43,7 @@ def get_options():
     )
     parser.add_argument(
     '-r', '--report',
-    help="Print pdf report with the specified name."
+    help="Print html report with the specified name."
     )
     parser.add_argument(
         '-v', '--verbose',
@@ -129,6 +129,9 @@ def get_ppi(options, start_time, pmids):
 
     ofh.close()
     # Make summary here
+    if options.report:
+        summary = core.ReportSummary(query)
+        summary.make_report(options.report)
     return stats
 
 def main():

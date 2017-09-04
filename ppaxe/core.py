@@ -380,30 +380,32 @@ class Sentence(object):
         state = 0
         html_list = list()
         for token in self.tokens:
-
+            word = token['word']
+            word = re.sub("-LRB-", "(", word)
+            word = re.sub("-RRB-", ")", word)
             if state == 0:
                 if token['ner'] == "O":
                     if re.match('VB[DGNPZ]?', token['pos']):
-                        html_list.append('<span class="verb">%s</span>' % token['word'])
+                        html_list.append('<span class="verb">%s</span>' % word)
                     else:
-                        html_list.append(token['word'])
+                        html_list.append(word)
                 else:
                     # Init of protein
                     state = 1
                     html_list.append('<span class="prot">')
-                    html_list.append(token['word'])
+                    html_list.append(word)
             else:
                 if token['ner'] == "O":
                     # End of protein
                     html_list.append("</span>")
                     if re.match('VB[DGNPZ]?', token['pos']):
-                        html_list.append('<span class="verb">%s</span>' % token['word'])
+                        html_list.append('<span class="verb">%s</span>' % word)
                     else:
-                        html_list.append(token['word'])
+                        html_list.append(word)
                     state = 0
                 else:
                     # Continues protein
-                    html_list.append(token['word'])
+                    html_list.append(word)
         return " ".join(html_list)
 
     def __str__(self):
@@ -823,26 +825,11 @@ class ReportSummary(object):
                     '</div>',
                     '<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>\n',
                     '<script src="%s"></script>\n' % cytotemplate,
-                    '<script src="https://cdn.rawgit.com/cytoscape/cytoscape.js-qtip/2.7.0/cytoscape-qtip.js"></script>\n',
                     '''
                     <script>
                         graphelements = %s;
                         cy.load(graphelements);
                         cy.layout( { name: 'cose' } );
-                        cy.nodes().qtip({
-                            content: 'Hello!',
-                            position: {
-                            my: 'top center',
-                            at: 'bottom center'
-                        },
-                        style: {
-                            classes: 'qtip-bootstrap',
-                            tip: {
-                                width: 16,
-                                height: 8
-                            }
-                        }
-                    });
                     </script>
                     ''' % self.graphsummary.graph_to_json(),
                 '</body>',
@@ -856,7 +843,7 @@ class ReportSummary(object):
         '''
         mdfile = outfile + ".md"
         if not sys.path.isfile(mdfile):
-            self.write_markdown(outfile)
+            self.write_html(outfile)
         # Convert Markdown file to pdf
 
 class ProteinSummary(object):
@@ -896,8 +883,9 @@ class ProteinSummary(object):
                 for candidate in sentence.candidates:
                     prot1 = candidate.prot1.disambiguate()
                     prot2 = candidate.prot2.disambiguate()
-                    self.prot_table[prot1]['int_count']['left'] += 1
-                    self.prot_table[prot2]['int_count']['right'] += 1
+                    if candidate.label is True:
+                        self.prot_table[prot1]['int_count']['left'] += 1
+                        self.prot_table[prot2]['int_count']['right'] += 1
 
     def __md_table_header(self):
         '''
