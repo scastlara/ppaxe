@@ -32,7 +32,7 @@ def get_options():
     )
     parser.add_argument(
         '-o', '--output',
-        help='Output file to print the retrieved interactions in tabular format. Default to STDOUT'
+        help='Output file to print the retrieved interactions in tabular format.'
     )
     parser.add_argument(
         '-m', '--mode',
@@ -95,9 +95,11 @@ def get_ppi(options, start_time, pmids):
         'total_candidates': 0,
         'total_interacts':  0
     })
+    # Open output if needed
+    if options.output:
+        ofh = open(options.output, "w")
     for article in query:
         if stats['total_articles'] % 5 == 0:
-            sys.stdout.flush()
             log.info(
                 """~%s seconds.\n      %s articles analyzed.\n      %s sentences analyzed.\n      %s candidates found.\n      %s interactions retrieved.
                 """, round(time.time() - start_time), stats['total_articles'], stats['total_sentences'], stats['total_candidates'], stats['total_interacts'])
@@ -107,19 +109,26 @@ def get_ppi(options, start_time, pmids):
         else:
             source = "fulltext"
         article.extract_sentences(source=source)
+        # Annotate sentences
         for sentence in article.sentences:
             stats['total_sentences'] += 1
             sentence.annotate()
             sentence.get_candidates()
+            # Predict candidate interactions
             for candidate in sentence.candidates:
                 stats['total_candidates'] += 1
                 candidate.predict()
                 if candidate.label is True:
                     stats['total_interacts'] += 1
-                    sys.stdout.write(
-                        "%s\t%s\t%s\t%s\t%s\n" %
-                        (article.pmid, candidate.prot1.symbol, candidate.prot2.symbol, candidate.votes, sentence.to_html())
-                    )
+                    # Print simple output if needed
+                    if options.output:
+                        ofh.write(
+                            "%s\t%s\t%s\t%s\t%s\n" %
+                            (article.pmid, candidate.prot1.symbol, candidate.prot2.symbol, candidate.votes, sentence.to_html())
+                        )
+
+    ofh.close()
+    # Make summary here
     return stats
 
 def main():
@@ -139,6 +148,7 @@ def main():
         log.getLogger("urllib3").setLevel(log.WARNING)
         log.info("Program started: %s", str(datetime.now()))
         log.info("Verbose output.")
+        log.info("Database: %s." % options.database)
     else:
         # Show only errors and warnings
         log.basicConfig(format="%(levelname)s: %(message)s")
