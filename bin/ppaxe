@@ -126,8 +126,8 @@ def get_ppi(options, start_time, pmids):
                             "%s\t%s\t%s\t%s\t%s\n" %
                             (article.pmid, candidate.prot1.symbol, candidate.prot2.symbol, candidate.votes[0], sentence.to_html())
                         )
-
-    ofh.close()
+    if options.output:
+        ofh.close()
     # Make summary here
     if options.report:
         summary = core.ReportSummary(query)
