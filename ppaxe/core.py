@@ -1338,7 +1338,7 @@ class GraphSummary(object):
         for interaction in self.interactions:
             json_nodes.append("{ data: { id: '%s', name: '%s', colorNODE: '#4b849d' } }," % (interaction[2], interaction[2]))
             json_nodes.append("{ data: { id: '%s', name: '%s', colorNODE: '#4b849d' } }," % (interaction[4], interaction[4]))
-            json_ints.append("{ data: { id: '%s-%s', source: '%s', target: '%s', confidence:'%s', colorEDGE: '#cdbb44', sentence: '%s' }}," % ( interaction[2], interaction[4], interaction[2], interaction[4], interaction[0][0], interaction[5]))
+            json_ints.append("{ data: { id: '%s-%s', source: '%s', target: '%s', confidence:'%s', colorEDGE: '#cdbb44' }}," % ( interaction[2], interaction[4], interaction[2], interaction[4], interaction[0][0]))
         json_nodes.append("], ")
         json_ints.append("]\n")
         total_json = "{\n" + "\n".join(json_nodes) + "\n".join(json_ints) + "\n}"
