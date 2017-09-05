@@ -23,12 +23,18 @@ scipy
 You can install this package using _pip_. However, before doing so, you have to download the [Random Forest predictor](https://www.dropbox.com/s/t6qcl19g536c0zu/RF_scikit.pkl?dl=0) and place it in `ppaxe/data`.
 
 ```
+# Clone the repository
 git clone https://github.com/scastlara/ppaxe.git
+
+# Download pickle wiht RF
+wget https://www.dropbox.com/s/t6qcl19g536c0zu/RF_scikit.pkl?dl=0 -O ppaxe/ppaxe/data/RF_scikit.pkl
+
+# Install
 pip install ppaxe
 ```
 
 In order to use the package you will need a [StanfordCoreNLP](https://stanfordnlp.github.io/CoreNLP) server setup with
- the [Protein/gene Tagger](https://www.dropbox.com/s/ec3a4ey7s0k6qgy/FINAL-ner-model.AImed%2BMedTag%2BBioInfer.ser.gz?dl=0). By default, ppaxe will assume it is available at localhost:9000. If you want to change the address you can do it as follows:
+ the [Protein/gene Tagger](https://www.dropbox.com/s/ec3a4ey7s0k6qgy/FINAL-ner-model.AImed%2BMedTag%2BBioInfer.ser.gz?dl=0). Download it and change the path in ppaxe/data/server.properties. By default, ppaxe will assume it is available at localhost:9000. If you want to change the address, set up the server with the appropiate port and change the address in ppaxe by assigning the new address to the variable ppaxe.ppcore.NLP:
 
 * **Start the server**
 
