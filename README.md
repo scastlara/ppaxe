@@ -92,7 +92,7 @@ bin/ppaxe -p pmids.txt -d PMC -v -o output.tbl -r report
 
 ## Documentation
 
-Refer to the [wiki](https://github.com/scastlara/ppaxe/wiki) of the package.
+Refer to the [wiki](https://github.com/scastlara/ppaxe/wiki/Documentation) of the package.
 
 ## Running the tests
 
