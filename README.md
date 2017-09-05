@@ -93,7 +93,7 @@ summary.make_report("report_file")
 # Will read PubMed ids in pmids.txt, predict the interactions
 # in their fulltext from PubMedCentral, and print a tabular output
 # and an html report
-bin/ppaxe -p pmids.txt -d PMC -v -o output.tbl -r report
+ppaxe -p pmids.txt -d PMC -v -o output.tbl -r report
 ```
 
 ## Documentation
