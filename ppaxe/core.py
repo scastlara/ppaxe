@@ -99,9 +99,36 @@ def json_to_sentence(json):
 class PMQuery(object):
     '''
     Class for PubMed queries. Will have Article objects. Will try to
-    do only ONE GET request... so that the time to retrieve the articles is reduced
+    do only ONE GET request... so that the time to retrieve the articles is reduced.
+
+    Attributes
+    ----------
+    ids : list, no default
+        List of PubMed identifiers to query.
+
+    database : str, default = "PMC"
+        Database to download the articles or abstracts from. PMC or PUBMED.
+
+    articles : list, no default
+        List of downloaded Article objects.
+
+    found : set, no default
+        PubMed identifiers of the articles found in database.
+
+    notfound : set, no default
+        PubMed identifiers of the articles not found in database.
+
     '''
     def __init__(self, ids, database="PMC"):
+        '''
+        Parameters
+        ----------
+        ids : list, required, no default
+            List of PubMed identifiers. Required. No default.
+
+        database: str, optional, default = "PMC"
+            Database to download the articles or the Abstracts. Can be PMC or PUBMED.
+        '''
         self.ids = ids
         self.database = database
         self.articles = list()
@@ -180,16 +207,40 @@ class PMQuery(object):
 # ----------------------------------------------
 class Article(object):
     '''
-    Article class
-        PMID:      PubMed Identifier
-        PMCID:     PubMedCentral Identifier
-        Abstract:  Full abstract as a string
-        Fulltext:  Full text of article as an xml minidom object
-        Sentences: List of sentence strings
+    Article class.
+
+    Attributes
+    ----------
+    pmid : str, no default
+        PubMed identifier of the article.
+
+    pmcid : str, no default
+        PubMedCentral identifier of the article.
+
+    fulltext : str, no default
+        Whole text of the article.
+
+    abstract : str, no default
+        Abstract of the article.
+
+    sentences : list, no default
+        List of Sentence objects in article (fulltext or abstract).
     '''
     def __init__(self, pmid, pmcid=None, fulltext=None, abstract=None):
         '''
-        Required: PMID
+        Parameters
+        ----------
+        pmid : str, required, no default
+            PubMed identifier of the article.
+
+        pmcid : str, optional, no default
+            PubMedCentral identifier of the article.
+
+        fulltext : str, optional, no default
+            Whole text of the article.
+
+        abstract : str, optional, no default
+            Abstract of the article.
         '''
         self.pmid       = pmid
         self.pmcid      = pmcid
@@ -199,7 +250,12 @@ class Article(object):
 
     def predict_interactions(self, source="fulltext"):
         '''
-        Simple wrapper method to avoid calls to multiple methods
+        Simple wrapper method to avoid calls to multiple methods.
+
+        Parameters
+        ----------
+        source : str, optional, default = "fulltext"
+            Retrieve the interactions in the article from the source (fulltext or abstract).
         '''
         self.extract_sentences(source=source)
         for sentence in self.sentences:
@@ -216,8 +272,17 @@ class Article(object):
 
     def extract_sentences(self, mode="split", source="fulltext"):
         '''
-        Finds sentence boundaries and saves them as sentence objects
-        Does not work very well.
+        Finds sentence boundaries and saves them as sentence objects in the
+        attribute "sentences" as a list of Sentence objects.
+
+        Parameters
+        ----------
+        mode : str, optional, default = "split"
+            Split the sentences ("split") or use the whole "source" as a single sentence ("no-split").
+            Useful for developing and debugging.
+
+        source : str, optional, default = "fulltext"
+            Use the "fulltext" or the "abstract" to extract sentences.
         '''
         text = ""
         if source == "fulltext":
@@ -298,9 +363,40 @@ class Article(object):
 # ----------------------------------------------
 class Protein(object):
     '''
-    Class for protein in sentences
+    Class for protein in sentences.
+
+    Attributes
+    ----------
+    symbol : str, no default
+        Symbol of the protein or the gene.
+
+    positions : list, no default
+        List of the position of the protein in the tokenized sentence (1-Indexed).
+
+    sentence : Sentence, no default
+        Sentence object to which the protein belongs.
+
+    synonym : str, no default
+        Synonymous symbol of the protein/gene.
+
+    count : int, no default
+        Length of position list.
+
     '''
     def __init__(self, symbol, positions, sentence):
+        '''
+        Parameters
+        ----------
+        symbol : str, required, no default
+            Symbol of the protein or the gene.
+
+        positions : list, required, no default
+            List of the position of the protein in the tokenized sentence (1-Indexed).
+
+        sentence : Sentence, required, no default
+            Sentence object to which the protein belongs.
+        '''
+
         #self.disambiguate()
         self.symbol = symbol
         self.positions = positions
@@ -310,8 +406,7 @@ class Protein(object):
 
     def disambiguate(self):
         '''
-        Method for disambiguating the gene
-        (convert it to the approved symbol if possible)
+        Method for disambiguating the gene (convert it to the approved symbol if possible).
         '''
         return self.symbol.upper()
 
@@ -322,9 +417,36 @@ class Protein(object):
 # ----------------------------------------------
 class Sentence(object):
     '''
-    Class for sentences
+    Class for sentences.
+
+    Attributes
+    ----------
+    originaltext : str, no default
+        Original text string of the sentence.
+
+    tokens : list, no default
+        List of tokens retrieved from StanfordCoreNLP. Each element is a dictionary
+        with keys:
+            "index" : Position of token (1-Indexed).
+            "word"  : Word of the token.
+            "lemma" : Lemma of the token.
+            "ner"   : Protein ("P") or Other ("O").
+            "pos"   : Part-of-Speech tag.
+
+    candidates : list, no default
+        List of Candidate objects in sentence.
+
+    proteins : list, no default
+        List of Protein objects found in sentence.
+
     '''
     def __init__(self, originaltext):
+        '''
+        Parameters
+        ----------
+        originaltext : str, required, no default
+            Original text string of the sentence.
+        '''
         self.originaltext = originaltext
         self.tokens       = list()
         self.tree         = list()
@@ -333,7 +455,8 @@ class Sentence(object):
 
     def annotate(self):
         '''
-        Annotates the genes/proteins in the sentence
+        Annotates the genes/proteins in the sentence using StanfordCoreNLP
+        trained NER tagger. Will add a list of tokens to the attribute "tokens".
         '''
         if not self.originaltext.strip():
             self.tokens = ""
@@ -344,7 +467,8 @@ class Sentence(object):
 
     def get_candidates(self):
         '''
-        Gets interaction candidates candidates for sentence
+        Gets interaction candidates candidates for sentence (attribute: candidates)
+        and all the proteins (attribute: proteins).
         '''
         if not self.tokens:
             self.annotate()
@@ -381,7 +505,7 @@ class Sentence(object):
 
     def to_html(self):
         '''
-        Sentence to HTML string
+        Sentence to HTML string tagging the proteins and the verbs using <span> tags.
         '''
         if not self.tokens:
             self.annotate()
@@ -427,7 +551,38 @@ class Sentence(object):
 class InteractionCandidate(object):
     '''
     Class for interaction candidates in articles
-    FEATURES: in feature_names.py
+    FEATURES: in feature_names.py.
+
+    Attributes
+    ----------
+    prot1 : Protein, no default
+        Protein object of the first protein involved in the possible interaction.
+
+    prot2 : Protein, no default
+        Protein object of the second protein involved in the possible interaction.
+
+    between_idxes : tuple, no default
+        Indexes of end of Protein_1 and start of Protein_2 (1-Indexed).
+
+    label : bool, no default
+        Label of Candidate when prediction is performed. True for interacting proteins
+        and False for non-interacting proteins. True if votes >= 0.55.
+
+    votes : float, no default
+        Percentage of votes of the Random Forest Classifier.
+
+    feat_cols : list, no default
+        Feature column indexes of the non-zero features computed for Candidate.
+
+    feat_current_col : int, no default
+        Store the current feature column index that has been computed.
+
+    feat_vals : list, no default
+        Values of the non-zero features.
+
+    features_sparse : sparse.coo_matrix, no default
+        Sparse Coo matrix with features for Candidate.
+
     '''
     # This will be pre-calculated from the corpora.
     # Now it is like this for testing and developing purposes
@@ -450,6 +605,15 @@ class InteractionCandidate(object):
         predictor = pickle.load(f)
 
     def __init__(self, prot1, prot2):
+        '''
+        Parameters
+        ----------
+        prot1 : Protein, required, no default
+            Protein object of the first protein involved in the possible interaction.
+
+        prot2 : Protein, required, no default
+            Protein object of the second protein involved in the possible interaction.
+        '''
         self.prot1 = prot1
         self.prot2 = prot2
         self.between_idxes = (prot1.positions[-1], prot2.positions[0] - 1)
@@ -463,7 +627,7 @@ class InteractionCandidate(object):
     def compute_features(self):
         '''
         Computes all the necessary features to predict if this InteractionCandidate
-        is a real interaction
+        is a real interaction. Fills attribute features_sparse, which is a Scipy sparse matrix.
         '''
         # Will call several private methods here
         self.__token_distance()
@@ -491,7 +655,7 @@ class InteractionCandidate(object):
 
     def __total_tokens(self):
         '''
-        Total tokens in sentence
+        Total tokens in sentence.
         '''
         if len(self.prot1.sentence.tokens) > 0:
             self.feat_cols.append(self.feat_current_col)
@@ -502,7 +666,13 @@ class InteractionCandidate(object):
         '''
         Counts the number of times the proteins of the candidate (A and B)
         appear in the sentence (either in the whole sentence [mode="all"] or between
-        A and B [mode="between"] )
+        A and B [mode="between"] ).
+
+        Parameters
+        ----------
+        mode : str, optional, default = "all"
+            Count number of times proteins appears in whole sentence (mode="all") or only
+            between candidate proteins (mode="between").
         '''
         prota_count = 0
         protb_count = 0
@@ -530,7 +700,16 @@ class InteractionCandidate(object):
 
     def __get_token_pos(self, mode="all"):
         '''
-        Returns a string with the token POS annotations for coordinates 'from'-'to'
+        Returns a string with the token POS annotations for coordinates 'from'-'to'.
+
+        Parameters
+        ----------
+        mode : str, optional, default = "all"
+            Protein object of the first protein involved in the possible interaction.
+
+        prot2 : Protein, required, no default.
+            Protein object of the second protein involved in the possible interaction.
+
         '''
         init_coord  = None
         final_coord = None
@@ -553,9 +732,14 @@ class InteractionCandidate(object):
             pos_str.append(token['pos'])
         return ",".join(pos_str)
 
-    def __pos_features(self, mode, coord=None):
+    def __pos_features(self, mode):
         '''
         Gets counts of POS tags and adds those features
+
+        Parameters
+        ----------
+        mode : str, required, no default
+            Counts POS tags in whole sentence (mode="all") or between candidate proteins (mode="between").
         '''
         pos_counts = {
             "CC": 0, "LS": 0, "MD": 0,
@@ -585,7 +769,15 @@ class InteractionCandidate(object):
 
     def __verb_distances(self, pidx, vidxes):
         '''
-        Computes the three verb distances
+        Computes the two verb distances (closest and farthest).
+
+        Parameters
+        ----------
+        pidx : int, required, no default
+            Index of the protein in tokenized sentence (1-Indexed).
+
+        vidxes : list, required, no default
+            List of indexes (ints) of the verbs in tokenized sentence (1-Indexed).
         '''
         closest_verb_idx  = take_closest(vidxes, pidx)
         farthest_verb_idx = take_farthest(vidxes, pidx)
@@ -600,7 +792,13 @@ class InteractionCandidate(object):
         '''
         Computes all the verb features for the candidate.
         It works for all the verbs in the sentence (flag=all)
-        and for only the verbs between protein 1 and protein 2 (flag=between)
+        and for only the verbs between protein 1 and protein 2 (flag=between).
+
+        Parameters
+        ----------
+        flag : str, required, no default
+            Compute verb features for whole sentence (flag="all") or only between
+            candidate proteins (flag="between").
         '''
         numverbs = dict({
             'VB': 0,  'VBD': 0, 'VBG': 0,
@@ -647,7 +845,12 @@ class InteractionCandidate(object):
 
     def __keyword_count(self, mode="all"):
         '''
-        Counts appearance of keywords in sentence
+        Counts appearance of keywords in sentence.
+
+        Parameters
+        ----------
+        mode : str, optional, default = "all"
+            Count keywords in whole sentence (mode="all") or between candidate proteins (mode="between").
         '''
 
         keywords = dict({
@@ -693,7 +896,8 @@ class InteractionCandidate(object):
 
     def predict(self):
         '''
-        Computes the votes (prediction) of the candidate
+        Computes the votes (prediction) of the candidate by using the Random Forest
+         classifier trained with scikitlearn.
         '''
         if self.features_sparse is None:
             self.compute_features()
@@ -707,7 +911,7 @@ class InteractionCandidate(object):
     def to_html(self):
         '''
         Transforms candidate to html with only involved proteins tagged and only
-        verbs between proteins tagged
+        verbs between proteins tagged.
         '''
         init_coord  = self.between_idxes[0]
         final_coord = self.between_idxes[1]
@@ -768,11 +972,27 @@ class InteractionCandidate(object):
 
 class ReportSummary(object):
     '''
-    Class for the report summary of the analysis
+    Class for the report summary of the analysis.
+
+    Attributes
+    ----------
+    articles : list or PMQuery, no default
+        List of Article objects or PMQuery with Article objects in attribute "articles".
+
+    protsummary : ProteinSummary, no default
+        ProteinSummary object of the analysis.
+
+    graphsummary : GraphSummary, no default
+        GraphSummary object of the analysis.
     '''
     def __init__(self, articles):
         '''
-        Initialized either with a PMQuery object or with a list of Article objects
+        Summary of the analysis to create an html or pdf report.
+
+        Parameters
+        ----------
+        articles : list or PMQuery, required, no default
+            List of Article objects or PMQuery with Article objects in attribute "articles".
         '''
         try: # Check if articles is a PMQuery
             self.articles = articles.articles
@@ -784,7 +1004,12 @@ class ReportSummary(object):
 
     def make_report(self, outfile="report"):
         '''
-        Makes all the necessary steps to make the report
+        Makes all the necessary steps to make the report.
+
+        Parameters
+        ----------
+        outfile : str, optional, default = "report"
+            Filename of the output file. Will append ".html" or ".pdf".
         '''
         self.protsummary.makesummary()
         self.graphsummary.makesummary()
@@ -796,6 +1021,11 @@ class ReportSummary(object):
     def write_html(self, outfile):
         '''
         Writes a markdown with the report to outfile.
+
+        Parameters
+        ----------
+        outfile : str, required, no default
+            Output filename of the html report. Will append ".html" to it.
         '''
         outfile = outfile + ".html"
         stylesheet = "https://cdn.rawgit.com/scastlara/ppaxe/51b2e788/ppaxe/data/style.css"
@@ -855,7 +1085,12 @@ class ReportSummary(object):
 
     def create_pdf(self, outfile):
         '''
-        Creates a pdf out of a markdown file
+        Creates a pdf out of a markdown file.
+
+        Parameters
+        ----------
+        outfile : str, required, no default
+            Output filename of the pdf report. Will append ".pdf" to it.
         '''
         mdfile = outfile + ".md"
         if not sys.path.isfile(mdfile):
@@ -865,11 +1100,20 @@ class ReportSummary(object):
 class ProteinSummary(object):
     '''
     Class of the Protein summary for the pdf report.
-    Will have:
-        - Table with protein ocurrence in sentences, ppi...
-        - Mapping to uniprot identifiers when possible.
-        - Method to get the most common proteins.
-        - Protein p-value ocurrence (compared to all PubMed).
+
+    Attributes
+    ----------
+    articles : list, no default
+        List of Article objects with Article objects in attribute "articles".
+
+    prot_table : dict, no default.
+        Dictionary of dictionary with information about protein counts in articles.
+        keys:
+            symbol: symbol of the protein
+                'totalcount' : total number of ocurrencies of protein.
+                'int_count'
+                    'left'  : Ocurrencies of protein on left hand side of interaction.
+                    'right' : Ocurrencies of protein on right hand side of interaction.
     '''
     def __init__(self, articles):
         self.articles = articles
@@ -915,7 +1159,18 @@ class ProteinSummary(object):
     def table_to_md(self, sorted_by="totalcount", reverse=True):
         '''
         Returns a string with the table in Markdown with proteins sorted by
-        sorted_by
+        sorted_by.
+
+        Parameters
+        ----------
+        sorted_by : str, optional, default = "totalcount"
+            Sort table by total number of ocurrences of protein in sentences (sorted_by="totalcount"),
+            by total number of ocurrences in interactions (sorted_by="int_count"), by ocurrences in
+            left hand side of interaction (sorted_by="left") or righ hand side (sorted_by="right").
+
+        reverse : bool, optional, default = True
+            Sort proteins in reverse order (from bigger to smaller) according to the sorted_by rule if True.
+            Reverse (smaller to bigger) if False.
         '''
         if sorted_by == "totalcount":
             sort_lambda = lambda x: (x[1]['totalcount'], x[1]['int_count']['right'] + x[1]['int_count']['left'])
@@ -942,7 +1197,18 @@ class ProteinSummary(object):
     def table_to_html(self, sorted_by="totalcount", reverse=True):
         '''
         Returns an html string with the desired count table by converting
-        the markdown table to html
+        the markdown table to html.
+
+        Parameters
+        ----------
+        sorted_by : str, optional, default = "totalcount"
+            Sort table by total number of ocurrences of protein in sentences (sorted_by="totalcount"),
+            by total number of ocurrences in interactions (sorted_by="int_count"), by ocurrences in
+            left hand side of interaction (sorted_by="left") or righ hand side (sorted_by="right").
+
+        reverse : bool, optional, default = True
+            Sort proteins in reverse order (from bigger to smaller) according to the sorted_by rule if True.
+            Reverse (smaller to bigger) if False.
         '''
         mdtbl = self.table_to_md(sorted_by=sorted_by, reverse=reverse)
         extensions = ['extra', 'smarty']
@@ -952,15 +1218,44 @@ class ProteinSummary(object):
 class GraphSummary(object):
     '''
     Class of the Interactions/Graph summary for the pdf report.
-    Will have:
-        - The actual interactions.
-        - Degree plot.
-        - Interactions per Journal name plot.
-        - Interactions per year plot.
-        - Token Distance plot.
-        - Method to write a Cytoscape graph.
+
+    Attributes
+    ----------
+    articles : list, no default
+        List of Article objects with Article objects in attribute "articles".
+
+    interactions : list, no default
+        List of lists with interactions in articles.
+        elements:
+            [
+                [
+                    votes,
+                    prot1.symbol,
+                    prot1.disambiguate(),
+                    prot2.symbol,
+                    prot2.disambiguate(),
+                    candidate.to_html(),
+                    article.pmid
+                ],
+                ...
+            ]
+
+    numinteractions : int, no default
+        Number of interactions in articles.
+
+    uniqinteractions : set, no default
+        Set with symbols of interactions in articles to remove redundant interactions.
+
+    uniqinteractions_count : int, no default
+        Number of unique interactions in articles.
     '''
     def __init__(self, articles):
+        '''
+        Parameters
+        ----------
+        articles : list, required, no default
+            List of Article objects.
+        '''
         self.articles = articles
         self.interactions = list()
         self.numinteractions = 0
@@ -969,7 +1264,7 @@ class GraphSummary(object):
 
     def makesummary(self):
         '''
-        Makes the summary of the interactions retrieved
+        Makes the summary of the interactions retrieved.
         '''
         for article in self.articles:
             for sentence in article.sentences:
