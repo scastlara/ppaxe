@@ -20,7 +20,7 @@ scipy
 
 ## Installing
 
-You can install this package using _pip_
+You can install this package using _pip_. However, before doing so, you have to download the [Random Forest predictor](https://www.dropbox.com/s/t6qcl19g536c0zu/RF_scikit.pkl?dl=0) and place it in `ppaxe/data`.
 
 ```
 git clone https://github.com/scastlara/ppaxe.git
@@ -28,13 +28,13 @@ pip install ppaxe
 ```
 
 In order to use the package you will need a [StanfordCoreNLP](https://stanfordnlp.github.io/CoreNLP) server setup with
- the [Protein/gene Tagger](https://compgen.bio.ub.edu). By default, it will assume it is available at localhost:9000. If you want to change the address you can do it as follows:
+ the [Protein/gene Tagger](https://www.dropbox.com/s/ec3a4ey7s0k6qgy/FINAL-ner-model.AImed%2BMedTag%2BBioInfer.ser.gz?dl=0). By default, ppaxe will assume it is available at localhost:9000. If you want to change the address you can do it as follows:
 
 * **Start the server**
 
 ```
 # Change the location of the ner tagger in server.properties manually
-java -mx10000m -cp ./stanford-corenlp-3.8.0.jar:stanford-english-corenlp-2017-06-09-models.jar edu.stanford.nlp.pipeline.StanfordCoreNLPServer -port 9000 -serverProperties ppaxe/data/server.properties
+java -mx10000m -cp ./stanford-corenlp-3.8.0.jar:stanford-english-corenlp-2017-06-09-models.jar edu.stanford.nlp.pipeline.StanfordCoreNLPServer -port your_port -serverProperties ppaxe/data/server.properties
 ```
 
 * **Use the ppaxe package**
