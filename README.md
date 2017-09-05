@@ -26,7 +26,7 @@ You can install this package using _pip_. However, before doing so, you have to 
 # Clone the repository
 git clone https://github.com/scastlara/ppaxe.git
 
-# Download pickle wiht RF
+# Download pickle with RF
 wget https://www.dropbox.com/s/t6qcl19g536c0zu/RF_scikit.pkl?dl=0 -O ppaxe/ppaxe/data/RF_scikit.pkl
 
 # Install
