@@ -20,6 +20,7 @@ scipy
 
 ## Installing
 
+#### Install ppaxe
 You can install this package using _pip_. However, before doing so, you have to download the [Random Forest predictor](https://www.dropbox.com/s/t6qcl19g536c0zu/RF_scikit.pkl?dl=0) and place it in `ppaxe/data`.
 
 ```
@@ -33,8 +34,28 @@ wget https://www.dropbox.com/s/t6qcl19g536c0zu/RF_scikit.pkl?dl=0 -O ppaxe/ppaxe
 pip install ppaxe
 ```
 
+#### Download StanfordCoreNLP
 In order to use the package you will need a [StanfordCoreNLP](https://stanfordnlp.github.io/CoreNLP) server setup with
- the [Protein/gene Tagger](https://www.dropbox.com/s/ec3a4ey7s0k6qgy/FINAL-ner-model.AImed%2BMedTag%2BBioInfer.ser.gz?dl=0). Download it and change the path in ppaxe/data/server.properties. By default, ppaxe will assume it is available at localhost:9000. If you want to change the address, set up the server with the appropiate port and change the address in ppaxe by assigning the new address to the variable ppaxe.ppcore.NLP:
+ the [Protein/gene Tagger](https://www.dropbox.com/s/ec3a4ey7s0k6qgy/FINAL-ner-model.AImed%2BMedTag%2BBioInfer.ser.gz?dl=0).
+ 
+ ```
+ # Download StanfordCoreNLP
+ wget http://nlp.stanford.edu/software/stanford-corenlp-full-2017-06-09.zip 
+ unzip stanford-corenlp-full-2017-06-09.zip 
+ 
+ # Download the Protein tagger
+ wget https://www.dropbox.com/s/ec3a4ey7s0k6qgy/FINAL-ner-model.AImed%2BMedTag%2BBioInfer.ser.gz?dl=0 -O FINAL-ner-model.AImed+MedTag+BioInfer.ser.gz
+ 
+ # Change the location of the tagger in ppaxe/data/server.properties if necessary
+ # ...
+ 
+ # Start the StanfordCoreNLP server
+java -mx10000m -cp stanford-corenlp-full-2017-06-09/stanford-corenlp-3.8.0.jar:stanford-english-corenlp-2017-06-09-models.jar edu.stanford.nlp.pipeline.StanfordCoreNLPServer -port 9000 -serverProperties ppaxe/data/server.properties
+ ```
+ 
+Once the server is up and running and ppaxe has been installed, you are good to go.
+
+By default, ppaxe will assume it is available at localhost:9000. If you want to change the address, set up the server with the appropiate port and change the address in ppaxe by assigning the new address to the variable ppaxe.ppcore.NLP:
 
 * **Start the server**
 
