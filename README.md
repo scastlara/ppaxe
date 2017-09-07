@@ -58,7 +58,7 @@ java -mx1000m -cp ./stanford-corenlp-3.8.0.jar:stanford-english-corenlp-2017-06-
  
 Once the server is up and running and ppaxe has been installed, you are good to go.
 
-By default, ppaxe will assume it is available at localhost:9000. If you want to change the address, set up the server with the appropiate port and change the address in ppaxe by assigning the new address to the variable ppaxe.ppcore.NLP:
+By default, ppaxe will assume the server is available at localhost:9000. If you want to change the address, set up the server with the appropiate port and change the address in ppaxe by assigning the new address to the variable ppaxe.ppcore.NLP:
 
 * **Start the server**
 
