@@ -53,7 +53,8 @@ In order to use the package you will need a [StanfordCoreNLP](https://stanfordnl
  # ...
  
  # Start the StanfordCoreNLP server
-java -mx10000m -cp stanford-corenlp-full-2017-06-09/stanford-corenlp-3.8.0.jar:stanford-english-corenlp-2017-06-09-models.jar edu.stanford.nlp.pipeline.StanfordCoreNLPServer -port 9000 -serverProperties ppaxe/ppaxe/data/server.properties
+ cd stanford-corenlp-full-2017-06-09/
+java -mx1000m -cp ./stanford-corenlp-3.8.0.jar:stanford-english-corenlp-2017-06-09-models.jar edu.stanford.nlp.pipeline.StanfordCoreNLPServer -port 9000 -serverProperties ~/ppaxe/ppaxe/data/server.properties
  ```
  
 Once the server is up and running and ppaxe has been installed, you are good to go.
