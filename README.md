@@ -82,10 +82,11 @@ ppcore.NLP = StanfordCoreNLP(your_new_adress)
 
 ## Usage
 
-### ppaxe core classes
+### ppaxe classes
 
 ```py
 from ppaxe import core as ppcore
+from ppaxe import report
 
 # Perform query to PubMedCentral
 pmids = ["28615517","28839427","28831451","28824332","28819371","28819357"]
@@ -107,7 +108,7 @@ for article in query:
 
 # Print html report
 # Will create 'report_file.html'
-summary = ppcore.ReportSummary(query)
+summary = report.ReportSummary(query)
 summary.make_report("report_file")
 ```
 
