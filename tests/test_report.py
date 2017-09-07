@@ -3,6 +3,7 @@
 Tests for the summary/report of the analyses
 '''
 from ppaxe import core
+from ppaxe import report
 from pycorenlp import StanfordCoreNLP
 import json
 
@@ -21,10 +22,9 @@ def test_summary_totalcount():
     for sentence in article.sentences:
         sentence.annotate()
         sentence.get_candidates()
-    summary = core.ReportSummary([article])
+    summary = report.ReportSummary([article])
     summary.protsummary.makesummary()
     assert(summary.protsummary.prot_table['MAPK']['totalcount'] == 2)
-
 
 def test_summary_intcount():
     '''
@@ -43,41 +43,9 @@ def test_summary_intcount():
         sentence.get_candidates()
         for candidate in sentence.candidates:
             candidate.predict()
-    summary = core.ReportSummary([article])
+    summary = report.ReportSummary([article])
     summary.protsummary.makesummary()
     assert(summary.protsummary.prot_table['MAPK']['int_count']['left'] == 2)
-
-
-def test_summary_prottable_tomd():
-    '''
-    Tests int_count of ProtSummary
-    '''
-    article_text = """
-             MAPK seems to interact with chloroacetate esterase.
-             However, MAPK is a better target for peroxydase.
-             The thing is, Schmidtea mediterranea is a good model organism because reasons.
-             However, cryoglobulin is better.
-         """
-    article = core.Article(pmid="1234", fulltext=article_text)
-    article.extract_sentences()
-    for sentence in article.sentences:
-        sentence.annotate()
-        sentence.get_candidates()
-        for candidate in sentence.candidates:
-            candidate.predict()
-    summary = core.ReportSummary([article])
-    summary.protsummary.makesummary()
-    thetable = summary.protsummary.table_to_md(sorted_by="int_count")
-    reftable = (
-    """| Protein | Total count | Int. count | Left count | Right count |
-| ----- | ----- | ----- | ----- | ----- |
-| MAPK | 2 | 2 | 2 | 0 |
-| CHLOROACETATE ESTERASE | 1 | 1 | 0 | 1 |
-| PEROXYDASE | 1 | 1 | 0 | 1 |
-| CRYOGLOBULIN | 1 | 0 | 0 | 0 |
-"""
-    )
-    assert(thetable == reftable)
 
 def test_summary_prottable_tohtml():
     '''
@@ -96,10 +64,10 @@ def test_summary_prottable_tohtml():
         sentence.get_candidates()
         for candidate in sentence.candidates:
             candidate.predict()
-    summary = core.ReportSummary([article])
+    summary = report.ReportSummary([article])
     summary.protsummary.makesummary()
     thetable = summary.protsummary.table_to_html(sorted_by="int_count")
-    reftable = """<table>
+    reftable = """<table id="prottable">
 <thead>
 <tr>
 <th>Protein</th>
@@ -111,28 +79,28 @@ def test_summary_prottable_tohtml():
 </thead>
 <tbody>
 <tr>
-<td>MAPK</td>
+<td><a href="http://www.uniprot.org/uniprot/?query=MAPK&sort=score" target="_blank">MAPK</a></td>
 <td>2</td>
 <td>2</td>
 <td>2</td>
 <td>0</td>
 </tr>
 <tr>
-<td>CHLOROACETATE ESTERASE</td>
+<td><a href="http://www.uniprot.org/uniprot/?query=CHLOROACETATE ESTERASE&sort=score" target="_blank">CHLOROACETATE ESTERASE</a></td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
 <tr>
-<td>PEROXYDASE</td>
+<td><a href="http://www.uniprot.org/uniprot/?query=PEROXYDASE&sort=score" target="_blank">PEROXYDASE</a></td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
 <tr>
-<td>CRYOGLOBULIN</td>
+<td><a href="http://www.uniprot.org/uniprot/?query=CRYOGLOBULIN&sort=score" target="_blank">CRYOGLOBULIN</a></td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
@@ -159,7 +127,7 @@ def test_interaction_list():
         sentence.get_candidates()
         for candidate in sentence.candidates:
             candidate.predict()
-    summary = core.ReportSummary([article])
+    summary = report.ReportSummary([article])
     summary.graphsummary.makesummary()
     assert(
         len(summary.graphsummary.interactions) == 4 and
@@ -167,7 +135,7 @@ def test_interaction_list():
     )
 
 
-def test_interaction_table_md():
+def test_interaction_table_html():
     '''
     Tests the markdown of the interactions table
     '''
@@ -184,9 +152,9 @@ def test_interaction_table_md():
         sentence.get_candidates()
         for candidate in sentence.candidates:
             candidate.predict()
-    summary = core.ReportSummary([article])
+    summary = report.ReportSummary([article])
     summary.graphsummary.makesummary()
-    reftable = """<table>
+    reftable = """<table id="inttable">
 <thead>
 <tr>
 <th>Confidence</th>
@@ -203,63 +171,39 @@ def test_interaction_table_md():
 <td>0.844</td>
 <td>Mapk4</td>
 <td>MAPK</td>
-<td>MAPK4</td>
-<td>MAPK</td>
-<td><a href="https://www.ncbi.nlm.nih.gov/pubmed/?term=1234">1234</a></td>
+<td><a href="http://www.uniprot.org/uniprot/?query=MAPK4&sort=score" target="_blank">MAPK4</a></td>
+<td><a href="http://www.uniprot.org/uniprot/?query=MAPK&sort=score" target="_blank">MAPK</a></td>
+<td><a href="https://www.ncbi.nlm.nih.gov/pubmed/?term=1234" target="_blank">1234</a></td>
 <td>However , <span class="prot"> Mapk4 </span> <span class="verb">interacts</span> directly with <span class="prot"> MAPK </span> .</td>
 </tr>
 <tr>
 <td>0.796</td>
 <td>CPP3</td>
 <td>Akt3</td>
-<td>CPP3</td>
-<td>AKT3</td>
-<td><a href="https://www.ncbi.nlm.nih.gov/pubmed/?term=1234">1234</a></td>
+<td><a href="http://www.uniprot.org/uniprot/?query=CPP3&sort=score" target="_blank">CPP3</a></td>
+<td><a href="http://www.uniprot.org/uniprot/?query=AKT3&sort=score" target="_blank">AKT3</a></td>
+<td><a href="https://www.ncbi.nlm.nih.gov/pubmed/?term=1234" target="_blank">1234</a></td>
 <td><span class="prot"> CPP3 </span> <span class="verb">is</span> a molecular target of <span class="prot"> Akt3 </span> .</td>
 </tr>
 <tr>
 <td>0.744</td>
 <td>MAPK</td>
 <td>MAPK4</td>
-<td>MAPK</td>
-<td>MAPK4</td>
-<td><a href="https://www.ncbi.nlm.nih.gov/pubmed/?term=1234">1234</a></td>
+<td><a href="http://www.uniprot.org/uniprot/?query=MAPK&sort=score" target="_blank">MAPK</a></td>
+<td><a href="http://www.uniprot.org/uniprot/?query=MAPK4&sort=score" target="_blank">MAPK4</a></td>
+<td><a href="https://www.ncbi.nlm.nih.gov/pubmed/?term=1234" target="_blank">1234</a></td>
 <td><span class="prot"> MAPK </span> <span class="verb">seems</span> to <span class="verb">interact</span> with <span class="prot"> MAPK4 </span> .</td>
 </tr>
 <tr>
 <td>0.714</td>
 <td>AKT3</td>
 <td>CPP3</td>
-<td>AKT3</td>
-<td>CPP3</td>
-<td><a href="https://www.ncbi.nlm.nih.gov/pubmed/?term=1234">1234</a></td>
+<td><a href="http://www.uniprot.org/uniprot/?query=AKT3&sort=score" target="_blank">AKT3</a></td>
+<td><a href="http://www.uniprot.org/uniprot/?query=CPP3&sort=score" target="_blank">CPP3</a></td>
+<td><a href="https://www.ncbi.nlm.nih.gov/pubmed/?term=1234" target="_blank">1234</a></td>
 <td><span class="prot"> AKT3 </span> <span class="verb">is</span> also <span class="verb">known</span> to <span class="verb">interact</span> with <span class="prot"> CPP3 </span> .</td>
 </tr>
 </tbody>
 </table>"""
     htmltable = summary.graphsummary.table_to_html()
     assert(htmltable == reftable)
-
-def test_simple_report():
-    '''
-    Test first version of report
-    '''
-    article_text = """
-             MAPK seems to interact with MAPK4.
-             However, Mapk4 interacts directly with MAPK.
-             CPP3 is a molecular target of Akt3.
-             AKT3 is also known to interact with CPP3.
-             Upon association with the destruction complex, GSK3β phosphorylates β-catenin, thus priming it for ubiquitination by β-TRCP and degradation by the proteasome.
-             Tankyrase recognizes its substrate proteins through the multiple ankyrin repeat cluster domains for PARylation and is involved in telomere homeostasis and in other biological events such as mitosis.
-             p70S6K and 4E-BP1 are regulated by the mTORC1 complex.
-             More research into this area will help guide the research community in understanding the role that PKG plays in modulating Wnt / β-catenin signaling.
-         """
-    article = core.Article(pmid="28615517", fulltext=article_text)
-    article.extract_sentences()
-    for sentence in article.sentences:
-        sentence.annotate()
-        sentence.get_candidates()
-        for candidate in sentence.candidates:
-            candidate.predict()
-    summary = core.ReportSummary([article])
-    summary.make_report()
