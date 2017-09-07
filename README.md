@@ -36,26 +36,26 @@ pip install ppaxe
 #### Download StanfordCoreNLP
 In order to use the package you will need a [StanfordCoreNLP](https://stanfordnlp.github.io/CoreNLP) server setup with
  the [Protein/gene Tagger](https://www.dropbox.com/s/ec3a4ey7s0k6qgy/FINAL-ner-model.AImed%2BMedTag%2BBioInfer.ser.gz?dl=0).
- 
+
  ```
  # Download StanfordCoreNLP
- wget http://nlp.stanford.edu/software/stanford-corenlp-full-2017-06-09.zip 
- unzip stanford-corenlp-full-2017-06-09.zip 
- 
+ wget http://nlp.stanford.edu/software/stanford-corenlp-full-2017-06-09.zip
+ unzip stanford-corenlp-full-2017-06-09.zip
+
  # Download the Protein tagger
  wget https://www.dropbox.com/s/ec3a4ey7s0k6qgy/FINAL-ner-model.AImed%2BMedTag%2BBioInfer.ser.gz?dl=0 -O FINAL-ner-model.AImed+MedTag+BioInfer.ser.gz
- 
+
  # Download English tagger models
  wget http://nlp.stanford.edu/software/stanford-english-corenlp-2017-06-09-models.jar -O stanford-corenlp-full-2017-06-09/stanford-english-corenlp-2017-06-09-models.jar
- 
+
  # Change the location of the tagger in ppaxe/data/server.properties if necessary
  # ...
- 
+
  # Start the StanfordCoreNLP server
  cd stanford-corenlp-full-2017-06-09/
 java -mx1000m -cp ./stanford-corenlp-3.8.0.jar:stanford-english-corenlp-2017-06-09-models.jar edu.stanford.nlp.pipeline.StanfordCoreNLPServer -port 9000 -serverProperties ~/ppaxe/ppaxe/data/server.properties
  ```
- 
+
 Once the server is up and running and ppaxe has been installed, you are good to go.
 
 By default, ppaxe will assume the server is available at localhost:9000. If you want to change the address, set up the server with the appropiate port and change the address in ppaxe by assigning the new address to the variable ppaxe.ppcore.NLP:
@@ -119,6 +119,13 @@ summary.make_report("report_file")
 # and an html report
 ppaxe -p pmids.txt -d PMC -v -o output.tbl -r report
 ```
+
+### Report
+
+The report output (`option -r`) will contain a simple summary of the analysis, the interactions retrieved (including the sentences from which they were retrieved), a table with the protein/gene counts and a graph visualization made using [cytoscape.js](http://js.cytoscape.org/).
+
+<img src="https://raw.githubusercontent.com/scastlara/ppaxe/master/ppaxe/data/report1-example.png"/>
+<img src="https://raw.githubusercontent.com/scastlara/ppaxe/master/ppaxe/data/report2-example.png"/>
 
 ## Documentation
 
