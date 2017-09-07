@@ -29,8 +29,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.4142135"
-     inkscape:cx="355.25696"
-     inkscape:cy="183.29655"
+     inkscape:cx="356.05905"
+     inkscape:cy="183.17062"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -104,7 +104,7 @@
    id="tspan4808">AXE</tspan></tspan></text>
     <g
        id="g4800"
-       transform="matrix(2.1960929,0,0,2.0195347,-9.4026995,-73.629826)">
+       transform="matrix(2.1960929,0,0,2.0195347,-6.2276993,-73.100659)">
       <g
          transform="matrix(0.11539174,0.1999597,-0.1999597,0.11539174,72.321452,35.122265)"
          id="g4598">
@@ -359,7 +359,7 @@
                  height="40.429779"
                  width="1.5549904"
                  id="rect5544-2"
-                 style="opacity:1;fill:#ffcc00;fill-opacity:1;stroke:none;stroke-width:0.56842268;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+                 style="opacity:1;fill:#ffb380;fill-opacity:1;stroke:none;stroke-width:0.56842268;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
               <path
                  style="opacity:1;fill:#3b3b3b;fill-opacity:1;stroke:none;stroke-width:0.06332514;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
                  d="m 48.949706,-6.1734447 c -0.469207,-1.019312 -0.572711,-1.220266 -1.549572,-3.008558 -0.57573,-1.0539593 -1.048537,-1.9280643 -1.050682,-1.9424563 -0.0021,-0.01439 0.243581,-0.235701 0.54606,-0.491797 l 0.549959,-0.465629 0.766147,-0.175371 0.766148,-0.175372 0.866468,0.162535 c 0.476557,0.08939 0.876471,0.174401 0.888696,0.188904 0.01223,0.0145 0.307537,0.902215 0.656245,1.972695 l 0.634015,1.9463253 0.524042,1.14831 0.524042,1.148308 -0.482115,0.102915 c -0.265154,0.05662 -0.498462,0.100377 -0.518441,0.09728 -0.01998,-0.0031 -0.0879,0.01262 -0.15092,0.03494 -0.06303,0.02231 -0.643955,0.155011 -1.290941,0.294903 l -1.176349,0.254323 z"
@@ -423,7 +423,9 @@
          x="47.05294"
          y="85.279945"
          style="font-size:47.27222222px;fill:#ffcc00;fill-opacity:1;stroke-width:0.26458332px"><tspan
-   style="fill:#2d2d2d;fill-opacity:1;font-size:47.27222222px"
-   id="tspan4806">P</tspan>P</tspan></text>
+           style="fill:#2d2d2d;fill-opacity:1;font-size:47.27222222px"
+           id="tspan4806">P</tspan><tspan
+           style="fill:#ffb380;fill-opacity:1"
+           id="tspan4810">P</tspan></tspan></text>
   </g>
 </svg>
