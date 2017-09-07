@@ -46,11 +46,14 @@ In order to use the package you will need a [StanfordCoreNLP](https://stanfordnl
  # Download the Protein tagger
  wget https://www.dropbox.com/s/ec3a4ey7s0k6qgy/FINAL-ner-model.AImed%2BMedTag%2BBioInfer.ser.gz?dl=0 -O FINAL-ner-model.AImed+MedTag+BioInfer.ser.gz
  
+ # Download English tagger models
+ wget http://nlp.stanford.edu/software/stanford-english-corenlp-2017-06-09-models.jar -O stanford-corenlp-full-2017-06-09/stanford-english-corenlp-2017-06-09-models.jar
+ 
  # Change the location of the tagger in ppaxe/data/server.properties if necessary
  # ...
  
  # Start the StanfordCoreNLP server
-java -mx10000m -cp stanford-corenlp-full-2017-06-09/stanford-corenlp-3.8.0.jar:stanford-english-corenlp-2017-06-09-models.jar edu.stanford.nlp.pipeline.StanfordCoreNLPServer -port 9000 -serverProperties ppaxe/data/server.properties
+java -mx10000m -cp stanford-corenlp-full-2017-06-09/stanford-corenlp-3.8.0.jar:stanford-english-corenlp-2017-06-09-models.jar edu.stanford.nlp.pipeline.StanfordCoreNLPServer -port 9000 -serverProperties ppaxe/ppaxe/data/server.properties
  ```
  
 Once the server is up and running and ppaxe has been installed, you are good to go.
