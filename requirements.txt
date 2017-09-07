@@ -1,7 +1,5 @@
 pycorenlp==0.3.0
 scipy==0.17.0
-pydoc-markdown==2.0.1
-Markdown==2.6.9
 sklearn==0.0
 requests==2.4.3
 scikit-learn==0.18.2

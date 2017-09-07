@@ -13,7 +13,6 @@ Tool to retrieve **protein-protein interactions** and calculate protein/gene sym
 xml.dom
 numpy
 pycorenlp
-markdown
 cPickle
 scipy
 ```
