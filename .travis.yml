@@ -8,7 +8,7 @@ install:
   - wget https://www.dropbox.com/s/ec3a4ey7s0k6qgy/FINAL-ner-model.AImed%2BMedTag%2BBioInfer.ser.gz?dl=0 -O FINAL-ner-model.AImed+MedTag+BioInfer.ser.gz
   - wget http://nlp.stanford.edu/software/stanford-english-corenlp-2017-06-09-models.jar -O stanford-corenlp-full-2017-06-09/stanford-english-corenlp-2017-06-09-models.jar
   - cd stanford-corenlp-full-2017-06-09/
-  - java -mx1000m -cp ./stanford-corenlp-3.8.0.jar:stanford-english-corenlp-2017-06-09-models.jar edu.stanford.nlp.pipeline.StanfordCoreNLPServer -port 9000 -serverProperties ../ppaxe/data/server.properties
+  - java -mx1000m -cp ./stanford-corenlp-3.8.0.jar:stanford-english-corenlp-2017-06-09-models.jar edu.stanford.nlp.pipeline.StanfordCoreNLPServer -port 9000 -serverProperties ../ppaxe/data/server.properties &
   - pip install -r ../requirements.txt
 # command to run tests
 script: python -m pytest ../tests
