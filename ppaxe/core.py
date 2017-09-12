@@ -79,6 +79,12 @@ def json_to_sentence(json):
     '''
     pass
 
+def minidom_to_text(minidom):
+    '''
+    Takes a minidom object and returns the text contained in it without the tags
+    '''
+    return " ".join(t.nodeValue.encode('utf-8') for t in minidom.childNodes if t.nodeType == t.TEXT_NODE)
+
 # CLASSES
 # ----------------------------------------------
 class PMQuery(object):
@@ -135,11 +141,11 @@ class PMQuery(object):
                 article_text = minidom.parseString(req.content)
                 articles = article_text.getElementsByTagName('article')
                 for article in articles:
-                    pmid  = article.getElementsByTagName('article-id')[0].firstChild.nodeValue
+                    pmid    = article.getElementsByTagName('article-id')[0].firstChild.nodeValue
+                    journal = article.getElementsByTagName('journal-id')[0].firstChild.nodeValue
                     try:
                         pmcid = article.getElementsByTagName('article-id')[1].firstChild.nodeValue
                     except:
-                        sys.exit(0)
                         continue
                     body =  article.getElementsByTagName('body')
                     if len(body) == 0:
@@ -148,8 +154,8 @@ class PMQuery(object):
                     paragraphs = body[0].getElementsByTagName('p')
                     fulltext = list()
                     for par in paragraphs:
-                        fulltext.append(" ".join(t.nodeValue.encode('utf-8') for t in par.childNodes if t.nodeType == t.TEXT_NODE))
-                    self.articles.append(Article(pmid=pmid, pmcid=pmcid, fulltext="\n".join(fulltext)))
+                        fulltext.append(minidom_to_text(par))
+                    self.articles.append(Article(pmid=pmid, pmcid=pmcid, journal=journal, fulltext="\n".join(fulltext)))
                 self.notfound = set(self.ids).difference(self.found)
             else:
                 PubMedQueryError("Can't connect to PMC...")
@@ -167,16 +173,18 @@ class PMQuery(object):
                 articles = article_text.getElementsByTagName('PubmedArticle')
                 for article in articles:
                     pmid = article.getElementsByTagName('PMID')[0]
-                    pmid_text =" ".join(t.nodeValue.encode('utf-8') for t in pmid.childNodes if t.nodeType == t.TEXT_NODE)
+                    pmid_text = minidom_to_text(pmid)
+                    journal = article.getElementsByTagName('Journal')[0].getElementsByTagName('Title')[0]
+                    journal_text = minidom_to_text(journal)
                     abstracts = article.getElementsByTagName('AbstractText')
                     abstract_text = list()
                     for abst in abstracts:
-                        abstract_text.append(" ".join(t.nodeValue.encode('utf-8') for t in abst.childNodes if t.nodeType == t.TEXT_NODE))
+                        abstract_text.append(minidom_to_text(abst))
                     abstract_text = "\n".join(abstract_text)
                     if not abstract_text.strip():
                         continue
                     self.found.add(pmid)
-                    self.articles.append(Article(pmid=pmid_text, abstract=abstract_text))
+                    self.articles.append(Article(pmid=pmid_text, journal=journal_text, abstract=abstract_text))
                 self.notfound = set(self.ids).difference(self.found)
             else:
                 PubMedQueryError("Can't connect to PubMed...")
@@ -208,10 +216,13 @@ class Article(object):
     abstract : str, no default
         Abstract of the article.
 
+    journal : str, no default
+        Journal id of the article.
+
     sentences : list, no default
         List of Sentence objects in article (fulltext or abstract).
     '''
-    def __init__(self, pmid, pmcid=None, fulltext=None, abstract=None):
+    def __init__(self, pmid, pmcid=None, journal=None, fulltext=None, abstract=None):
         '''
         Parameters
         ----------
@@ -229,6 +240,7 @@ class Article(object):
         '''
         self.pmid       = pmid
         self.pmcid      = pmcid
+        self.journal    = journal
         self.abstract   = abstract
         self.fulltext   = fulltext
         self.sentences  = list()
@@ -343,7 +355,8 @@ class Article(object):
         '''
         pass
 
-
+    def __str__(self):
+        return "Article with PubMED id:%s" % (self.pmid)
 
 # ----------------------------------------------
 class Protein(object):

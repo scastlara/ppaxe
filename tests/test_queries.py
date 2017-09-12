@@ -45,3 +45,22 @@ def test_query_notfound():
     query = core.PMQuery(ids=["99999999","27612382"], database="PMC")
     query.get_articles()
     assert(query.notfound == set(["99999999"]))
+
+def test_article_journal_pmc():
+    '''
+    Tests the retrieval of the article journal from the PMC XML response
+    '''
+    query = core.PMQuery(ids=["25615823"], database="PMC")
+    query.get_articles()
+    for article in query:
+        assert(article.journal == "PLoS One")
+
+
+def test_article_journal_pubmed():
+    '''
+    Tests the retrieval of the article journal from the PubMed XML response
+    '''
+    query = core.PMQuery(ids=["28869924"], database="PUBMED")
+    query.get_articles()
+    for article in query:
+        assert(article.journal == "Aquatic toxicology (Amsterdam, Netherlands)")
