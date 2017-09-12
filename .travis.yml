@@ -10,5 +10,6 @@ install:
   - cd stanford-corenlp-full-2017-06-09/
   - java -mx1000m -cp ./stanford-corenlp-3.8.0.jar:stanford-english-corenlp-2017-06-09-models.jar edu.stanford.nlp.pipeline.StanfordCoreNLPServer -port 9000 -serverProperties ../ppaxe/data/server.properties &
   - pip install -r ../requirements.txt
+  - pip install ../
 # command to run tests
 script: python -m pytest ../tests
