@@ -2,7 +2,7 @@
 Classes for report Summary
 '''
 import matplotlib.pyplot as plt
-
+import numpy as np
 
 # FUNCTIONS
 # ----------------------------------------------
@@ -17,7 +17,6 @@ def make_html_row(items, header=False):
     else:
         row_str = ['<tr>', '\n'.join([ "<td>" + str(x) + "</td>" for x in items]), '</tr>']
         return "\n".join(row_str)
-
 
 # CLASSES
 # ----------------------------------------------
@@ -64,9 +63,62 @@ class ReportSummary(object):
         '''
         self.protsummary.makesummary()
         self.graphsummary.makesummary()
+        self.journal_plot(outfile)
         self.write_html(outfile)
         # self.write_markdown(outfile)
         # self.create_pdf(outfile)
+
+    def journal_plot(self, outfile, testing=False):
+        '''
+        Counts the number of proteins and interactions found in each journal.
+        Generates "outfile-journal_img.png"
+        '''
+        journals = dict()
+        for article in self.articles:
+            # Initialize
+            if article.journal not in journals:
+                journals[article.journal] = dict()
+                journals[article.journal]['ints'] = 0
+                journals[article.journal]['prots'] = 0
+            # Count proteins
+            for sentence in article.sentences:
+                for proteins in sentence.proteins:
+                    journals[article.journal]['prots'] += 1
+            # Count interactions
+            for candidate in sentence.candidates:
+                if candidate.label is True:
+                    journals[article.journal]['ints'] += 1
+        figure = self.__make_journal_plot(journals)
+
+        if testing is False:
+            outfile = outfile + "-journal_img.png"
+            figure.savefig(outfile)
+
+    def __make_journal_plot(self, journals):
+        '''
+        Plot the number of proteins and interactions by journals
+        '''
+        # Parameters for the plot
+        labels = sorted(journals.keys())
+        journal_n = len(labels)
+        ind   = np.arange(journal_n)
+        width = 0.35
+        int_count  = list()
+        prot_count = list()
+        for lab in labels:
+            int_count.append(journals[lab]['ints'])
+            prot_count.append(journals[lab]['prots'])
+
+        # Make the plot
+        fig, axis = plt.subplots()
+        rects1 = axis.barh(ind, int_count, width, color="#c27f3c")
+        rects2 = axis.barh(ind + width, prot_count, width, color="#4cab98")
+        axis.legend((rects2[0], rects1[0] ), ('Proteins', 'Interactions'))
+        axis.set_yticks(ind + width / 2)
+        axis.set_yticklabels(labels)
+        plt.tight_layout()
+        #plt.gcf().subplots_adjust(bottom=0.15, left=0.5)
+        return fig
 
     def summary_table(self):
         '''

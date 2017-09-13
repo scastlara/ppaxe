@@ -207,3 +207,28 @@ def test_interaction_table_html():
 </table>"""
     htmltable = summary.graphsummary.table_to_html()
     assert(htmltable == reftable)
+
+def test_journal_plot():
+    '''
+    Tests journal plot
+    '''
+    article_text1 = """
+    Sak binds to p53 , and studies are underway to provide a molecular context for the Sak-p53 interaction.
+    By coimmunoprecipitation coupled with mass spectrometry, we demonstrate that AHNAK interacts with dysferlin.
+    """
+    journal1 = "PLOS ONE"
+    article_text2 = """
+    Here we show that KLF4 physically interacts with STAT3 upon cytokine-induced phosphorylation of tyrosine 705 ( Y705 ) on STAT3.
+    In this study , we report the Grb7 protein interacts with Filamin-a , an actin-crosslinking component of the cell cytoskeleton.
+    """
+    journal2 = "BMC GENOMICS"
+
+    articles = [
+        core.Article(pmid="1234", fulltext=article_text1, journal=journal1),
+        core.Article(pmid="4321", fulltext=article_text2, journal=journal2),
+    ]
+
+    for article in articles:
+        article.predict_interactions()
+    summary = report.ReportSummary(articles)
+    summary.journal_plot("kk", testing=True)
