@@ -346,7 +346,7 @@ class GraphSummary(object):
         table_str.append("<tbody>")
         for interaction in self.interactions:
             table_str.append(make_html_row([
-                interaction[0][0],
+                interaction[0],
                 interaction[1],
                 interaction[3],
                 '<a href="http://www.uniprot.org/uniprot/?query=%s&sort=score" target="_blank">%s</a>' % (interaction[2], interaction[2]),
@@ -368,7 +368,7 @@ class GraphSummary(object):
         for interaction in self.interactions:
             json_nodes.append("{ data: { id: '%s', name: '%s', colorNODE: '#4b849d' } }," % (interaction[2], interaction[2]))
             json_nodes.append("{ data: { id: '%s', name: '%s', colorNODE: '#4b849d' } }," % (interaction[4], interaction[4]))
-            json_ints.append("{ data: { id: '%s-%s', source: '%s', target: '%s', confidence:'%s', colorEDGE: '#cdbb44' }}," % ( interaction[2], interaction[4], interaction[2], interaction[4], interaction[0][0]))
+            json_ints.append("{ data: { id: '%s-%s', source: '%s', target: '%s', confidence:'%s', colorEDGE: '#cdbb44' }}," % ( interaction[2], interaction[4], interaction[2], interaction[4], interaction[0]))
         json_nodes.append("], ")
         json_ints.append("]\n")
         total_json = "{\n" + "\n".join(json_nodes) + "\n".join(json_ints) + "\n}"

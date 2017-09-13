@@ -73,12 +73,6 @@ def take_farthest(mylist, mynumber):
     else:
         return mylist[-1]
 
-def json_to_sentence(json):
-    '''
-    Takes a sentence in json dict an returns a string
-    '''
-    pass
-
 def minidom_to_text(minidom):
     '''
     Takes a minidom object and returns the text contained in it without the tags
@@ -126,6 +120,68 @@ class PMQuery(object):
         self.found    = set()
         self.notfound = set()
 
+    def __get_pmc(self, req):
+        '''
+        Gets PMC article request and fills articles attribute
+
+        Parameters
+        ----------
+        req : requests.models.Response, required, no default
+            response object to pubmedCentral
+        '''
+        if req.status_code == 200:
+            article_text = minidom.parseString(req.content)
+            articles = article_text.getElementsByTagName('article')
+            for article in articles:
+                pmid    = article.getElementsByTagName('article-id')[0].firstChild.nodeValue
+                journal = article.getElementsByTagName('journal-id')[0].firstChild.nodeValue
+                try:
+                    pmcid = article.getElementsByTagName('article-id')[1].firstChild.nodeValue
+                except:
+                    continue
+                body =  article.getElementsByTagName('body')
+                if len(body) == 0:
+                    continue
+                self.found.add(pmid)
+                paragraphs = body[0].getElementsByTagName('p')
+                fulltext = list()
+                for par in paragraphs:
+                    fulltext.append(minidom_to_text(par))
+                self.articles.append(Article(pmid=pmid, pmcid=pmcid, journal=journal, fulltext="\n".join(fulltext)))
+            self.notfound = set(self.ids).difference(self.found)
+        else:
+            PubMedQueryError("Can't connect to PMC...")
+
+    def __get_pubmed(self, req):
+        '''
+        Gets PUBMED article request and fills article attribute.
+
+        Parameters
+        ----------
+        req : requests.models.Response, required, no default
+            response object to pubmed
+        '''
+        if req.status_code == 200:
+            article_text = minidom.parseString(req.content)
+            articles = article_text.getElementsByTagName('PubmedArticle')
+            for article in articles:
+                pmid = article.getElementsByTagName('PMID')[0]
+                pmid_text = minidom_to_text(pmid)
+                journal = article.getElementsByTagName('Journal')[0].getElementsByTagName('Title')[0]
+                journal_text = minidom_to_text(journal)
+                abstracts = article.getElementsByTagName('AbstractText')
+                abstract_text = list()
+                for abst in abstracts:
+                    abstract_text.append(minidom_to_text(abst))
+                abstract_text = "\n".join(abstract_text)
+                if not abstract_text.strip():
+                    continue
+                self.found.add(pmid)
+                self.articles.append(Article(pmid=pmid_text, journal=journal_text, abstract=abstract_text))
+            self.notfound = set(self.ids).difference(self.found)
+        else:
+            PubMedQueryError("Can't connect to PubMed...")
+
     def get_articles(self):
         '''
         Retrieves the Fulltext or the abstracts of the specified Articles
@@ -133,61 +189,20 @@ class PMQuery(object):
         if self.database == "PMC":
             # Do fulltext query
             params = {
-                    'id': ",".join(pmid_2_pmc(self.ids)),
-                    'db': 'pmc',
+                'id': ",".join(pmid_2_pmc(self.ids)),
+                'db': 'pmc',
             }
             req = requests.get("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi", params=params)
-            if req.status_code == 200:
-                article_text = minidom.parseString(req.content)
-                articles = article_text.getElementsByTagName('article')
-                for article in articles:
-                    pmid    = article.getElementsByTagName('article-id')[0].firstChild.nodeValue
-                    journal = article.getElementsByTagName('journal-id')[0].firstChild.nodeValue
-                    try:
-                        pmcid = article.getElementsByTagName('article-id')[1].firstChild.nodeValue
-                    except:
-                        continue
-                    body =  article.getElementsByTagName('body')
-                    if len(body) == 0:
-                        continue
-                    self.found.add(pmid)
-                    paragraphs = body[0].getElementsByTagName('p')
-                    fulltext = list()
-                    for par in paragraphs:
-                        fulltext.append(minidom_to_text(par))
-                    self.articles.append(Article(pmid=pmid, pmcid=pmcid, journal=journal, fulltext="\n".join(fulltext)))
-                self.notfound = set(self.ids).difference(self.found)
-            else:
-                PubMedQueryError("Can't connect to PMC...")
-
+            self.__get_pmc(req)
         elif self.database == "PUBMED":
             # Do abstract query
             params = {
-                    'id':      ",".join(self.ids),
-                    'db':      'pubmed',
-                    'retmode': 'xml'
+                'id':      ",".join(self.ids),
+                'db':      'pubmed',
+                'retmode': 'xml'
             }
             req = requests.get("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi", params=params)
-            if req.status_code == 200:
-                article_text = minidom.parseString(req.content)
-                articles = article_text.getElementsByTagName('PubmedArticle')
-                for article in articles:
-                    pmid = article.getElementsByTagName('PMID')[0]
-                    pmid_text = minidom_to_text(pmid)
-                    journal = article.getElementsByTagName('Journal')[0].getElementsByTagName('Title')[0]
-                    journal_text = minidom_to_text(journal)
-                    abstracts = article.getElementsByTagName('AbstractText')
-                    abstract_text = list()
-                    for abst in abstracts:
-                        abstract_text.append(minidom_to_text(abst))
-                    abstract_text = "\n".join(abstract_text)
-                    if not abstract_text.strip():
-                        continue
-                    self.found.add(pmid)
-                    self.articles.append(Article(pmid=pmid_text, journal=journal_text, abstract=abstract_text))
-                self.notfound = set(self.ids).difference(self.found)
-            else:
-                PubMedQueryError("Can't connect to PubMed...")
+            self.__get_pubmed(req)
         else:
             logging.error('%s: Incorrect database. Choose "PMC" or "PUBMED"', self.database)
 
@@ -406,7 +421,10 @@ class Protein(object):
         '''
         Method for disambiguating the gene (convert it to the approved symbol if possible).
         '''
-        return self.symbol.upper()
+        disambiguated = self.symbol.upper()
+        disambiguated = disambiguated.replace("'", "")
+        disambiguated = disambiguated.replace('"', '')
+        return disambiguated
 
     def __str__(self):
         return "%s found in positions %s" % (self.symbol, ":".join([ str(idx) for idx in self.positions ]))
@@ -900,7 +918,8 @@ class InteractionCandidate(object):
         if self.features_sparse is None:
             self.compute_features()
         pred = InteractionCandidate.predictor.predict_proba(self.features_sparse)[:,1]
-        self.votes = pred
+
+        self.votes = round(pred[0], 3)
         if pred >= 0.55:
             self.label = True
         else:

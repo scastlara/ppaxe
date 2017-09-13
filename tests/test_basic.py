@@ -79,6 +79,13 @@ def test_get_proteins():
         candidate = str(sentence.candidates[0])
         assert(candidate == "[MAPK] may interact with [chloroacetate esterase]")
 
+def test_disambiguate():
+    '''
+    Tests disambuation of protein symbols
+    '''
+    prot = core.Protein(symbol="PROTEIN'\"", positions=[1], sentence=core.Sentence("This is a sentence"))
+    assert(prot.disambiguate() == "PROTEIN")
+
 def test_token_distance():
     '''
     Tests token distance feature
