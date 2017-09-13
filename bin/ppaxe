@@ -125,7 +125,7 @@ def get_ppi(options, start_time, pmids):
                     if options.output:
                         ofh.write(
                             "%s\t%s\t%s\t%s\t%s\n" %
-                            (article.pmid, candidate.prot1.symbol, candidate.prot2.symbol, candidate.votes[0], sentence.to_html())
+                            (article.pmid, candidate.prot1.symbol, candidate.prot2.symbol, candidate.votes, sentence.to_html())
                         )
     if options.output:
         ofh.close()

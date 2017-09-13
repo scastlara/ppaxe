@@ -231,4 +231,4 @@ def test_journal_plot():
     for article in articles:
         article.predict_interactions()
     summary = report.ReportSummary(articles)
-    summary.journal_plot("kk", testing=True)
+    summary.journal_plot()

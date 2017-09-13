@@ -3,6 +3,7 @@ Classes for report Summary
 '''
 import matplotlib.pyplot as plt
 import numpy as np
+import cStringIO
 
 # FUNCTIONS
 # ----------------------------------------------
@@ -51,6 +52,7 @@ class ReportSummary(object):
         self.protsummary  = ProteinSummary(self.articles)
         self.graphsummary = GraphSummary(self.articles)
         self.totalarticles = len(self.articles)
+        self.plots = dict()
 
     def make_report(self, outfile="report"):
         '''
@@ -63,15 +65,15 @@ class ReportSummary(object):
         '''
         self.protsummary.makesummary()
         self.graphsummary.makesummary()
-        self.journal_plot(outfile)
+        self.plots['journal_plot'] = self.journal_plot()
         self.write_html(outfile)
         # self.write_markdown(outfile)
         # self.create_pdf(outfile)
 
-    def journal_plot(self, outfile, testing=False):
+    def journal_plot(self):
         '''
         Counts the number of proteins and interactions found in each journal.
-        Generates "outfile-journal_img.png"
+        Returns the base65 binary of the journal plot
         '''
         journals = dict()
         for article in self.articles:
@@ -89,10 +91,9 @@ class ReportSummary(object):
                 if candidate.label is True:
                     journals[article.journal]['ints'] += 1
         figure = self.__make_journal_plot(journals)
-
-        if testing is False:
-            outfile = outfile + "-journal_img.png"
-            figure.savefig(outfile)
+        sio = cStringIO.StringIO()
+        figure.savefig(sio, format="png")
+        return sio
 
     def __make_journal_plot(self, journals):
         '''
@@ -168,6 +169,10 @@ class ReportSummary(object):
                         '<h2>Graph</h2>',
                         '<div id="cyt"></div>\n',
                         '<hr>',
+                        '<h2>Plots</h2>',
+                        '<div class="plots">',
+                        '<img id="journal_plot" src="data:image/png;base64,%s"/>' % self.plots['journal_plot'].getvalue().encode("base64").strip(),
+                        '</div>',
                         '<h2>Proteins</h2>',
                         '<div class="reptable">',
                             self.protsummary.table_to_html(),
