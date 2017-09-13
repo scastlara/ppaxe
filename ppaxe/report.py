@@ -1,6 +1,8 @@
 '''
 Classes for report Summary
 '''
+import matplotlib.pyplot as plt
+
 
 # FUNCTIONS
 # ----------------------------------------------
