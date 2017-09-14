@@ -143,7 +143,8 @@ class ReportSummary(object):
         axis.set_xticklabels(labels)
         axis.set_title("Interactions retrieved per Year")
         axis.set_ylabel("count")
-        plt.tight_layout()
+        fig.subplots_adjust()
+        fig.tight_layout()
         return fig
 
     def __make_journal_plots(self, journals, mode):
@@ -175,7 +176,7 @@ class ReportSummary(object):
         axis.set_yticklabels(labels)
         axis.set_title("%s per Journal" % leglabel)
         axis.set_xlabel("count")
-        plt.tight_layout()
+        #fig.tight_layout()
         return fig
 
     def summary_table(self):
