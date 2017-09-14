@@ -135,6 +135,7 @@ class PMQuery(object):
             for article in articles:
                 pmid    = article.getElementsByTagName('article-id')[0].firstChild.nodeValue
                 journal = article.getElementsByTagName('journal-id')[0].firstChild.nodeValue
+                year = article.getElementsByTagName('year')[0].firstChild.nodeValue
                 try:
                     pmcid = article.getElementsByTagName('article-id')[1].firstChild.nodeValue
                 except:
@@ -147,7 +148,7 @@ class PMQuery(object):
                 fulltext = list()
                 for par in paragraphs:
                     fulltext.append(minidom_to_text(par))
-                self.articles.append(Article(pmid=pmid, pmcid=pmcid, journal=journal, fulltext="\n".join(fulltext)))
+                self.articles.append(Article(pmid=pmid, pmcid=pmcid, journal=journal, year=year, fulltext="\n".join(fulltext)))
             self.notfound = set(self.ids).difference(self.found)
         else:
             PubMedQueryError("Can't connect to PMC...")
@@ -169,6 +170,7 @@ class PMQuery(object):
                 pmid_text = minidom_to_text(pmid)
                 journal = article.getElementsByTagName('Journal')[0].getElementsByTagName('Title')[0]
                 journal_text = minidom_to_text(journal)
+                year = article.getElementsByTagName('Year')[0].firstChild.nodeValue
                 abstracts = article.getElementsByTagName('AbstractText')
                 abstract_text = list()
                 for abst in abstracts:
@@ -177,7 +179,7 @@ class PMQuery(object):
                 if not abstract_text.strip():
                     continue
                 self.found.add(pmid)
-                self.articles.append(Article(pmid=pmid_text, journal=journal_text, abstract=abstract_text))
+                self.articles.append(Article(pmid=pmid_text, journal=journal_text, year=year, abstract=abstract_text))
             self.notfound = set(self.ids).difference(self.found)
         else:
             PubMedQueryError("Can't connect to PubMed...")
@@ -234,10 +236,13 @@ class Article(object):
     journal : str, no default
         Journal id of the article.
 
+    year : str, no default
+        Year of publication
+
     sentences : list, no default
         List of Sentence objects in article (fulltext or abstract).
     '''
-    def __init__(self, pmid, pmcid=None, journal=None, fulltext=None, abstract=None):
+    def __init__(self, pmid, pmcid=None, journal=None, year=None, fulltext=None, abstract=None):
         '''
         Parameters
         ----------
@@ -256,6 +261,7 @@ class Article(object):
         self.pmid       = pmid
         self.pmcid      = pmcid
         self.journal    = journal
+        self.year       = year
         self.abstract   = abstract
         self.fulltext   = fulltext
         self.sentences  = list()

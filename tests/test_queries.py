@@ -46,6 +46,24 @@ def test_query_notfound():
     query.get_articles()
     assert(query.notfound == set(["99999999"]))
 
+def test_year_pmc():
+    '''
+    Tests retrieval of year from PMC XML response
+    '''
+    query = core.PMQuery(ids=["25615823"], database="PMC")
+    query.get_articles()
+    for article in query:
+        assert(article.year == "2015")
+
+def test_year_pubmed():
+    '''
+    Tests retrieval of year from PMC XML response
+    '''
+    query = core.PMQuery(ids=["25615823"], database="PUBMED")
+    query.get_articles()
+    for article in query:
+        assert(article.year == "2015")
+
 def test_article_journal_pmc():
     '''
     Tests the retrieval of the article journal from the PMC XML response
