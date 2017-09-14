@@ -67,15 +67,15 @@ class ReportSummary(object):
         '''
         self.protsummary.makesummary()
         self.graphsummary.makesummary()
-        self.plots['journal_plot'] = self.journal_plot()
+        self.plots['j_int_plot'], self.plots['j_prot_plot'] = self.journal_plots()
         self.write_html(outfile)
         # self.write_markdown(outfile)
         # self.create_pdf(outfile)
 
-    def journal_plot(self):
+    def journal_plots(self):
         '''
         Counts the number of proteins and interactions found in each journal.
-        Returns the base65 binary of the journal plot
+        Returns the base65 binary of the journal plots
         '''
         journals = dict()
         for article in self.articles:
@@ -88,16 +88,19 @@ class ReportSummary(object):
             for sentence in article.sentences:
                 for proteins in sentence.proteins:
                     journals[article.journal]['prots'] += 1
-            # Count interactions
-            for candidate in sentence.candidates:
-                if candidate.label is True:
-                    journals[article.journal]['ints'] += 1
-        figure = self.__make_journal_plot(journals)
-        sio = cStringIO.StringIO()
-        figure.savefig(sio, format="png")
-        return sio
+                # Count interactions
+                for candidate in sentence.candidates:
+                    if candidate.label is True:
+                        journals[article.journal]['ints'] += 1
+        figure_ints = self.__make_journal_plots(journals, mode="ints")
+        figure_prots = self.__make_journal_plots(journals, mode="prots")
+        sio_ints  = cStringIO.StringIO()
+        sio_prots = cStringIO.StringIO()
+        figure_ints.savefig(sio_ints, format="png")
+        figure_prots.savefig(sio_prots, format="png")
+        return sio_ints, sio_prots
 
-    def __make_journal_plot(self, journals):
+    def __make_journal_plots(self, journals, mode):
         '''
         Plot the number of proteins and interactions by journals
         '''
@@ -106,21 +109,27 @@ class ReportSummary(object):
         journal_n = len(labels)
         ind   = np.arange(journal_n)
         width = 0.35
-        int_count  = list()
-        prot_count = list()
+        count  = list()
         for lab in labels:
-            int_count.append(journals[lab]['ints'])
-            prot_count.append(journals[lab]['prots'])
-
+            try:
+                count.append(journals[lab][mode])
+            except KeyError:
+                raise IncorrectPlotName("Can't create plot for %s" % mode)
         # Make the plot
         fig, axis = plt.subplots()
-        rects1 = axis.barh(ind, int_count, width, color="#c27f3c")
-        rects2 = axis.barh(ind + width, prot_count, width, color="#4cab98")
-        axis.legend((rects2[0], rects1[0] ), ('Proteins', 'Interactions'))
+        if mode == "ints":
+            leglabel = "Interactions"
+            color = "#c27f3c"
+        else:
+            leglabel = "Proteins"
+            color = "#50ac72"
+        axis.barh(ind, count, width, color=color)
+        #axis.legend((rects[0]), (leglabel))
         axis.set_yticks(ind + width / 2)
         axis.set_yticklabels(labels)
+        axis.set_title("%s per Journal" % leglabel)
+        axis.set_xlabel("count")
         plt.tight_layout()
-        #plt.gcf().subplots_adjust(bottom=0.15, left=0.5)
         return fig
 
     def summary_table(self):
@@ -171,13 +180,14 @@ class ReportSummary(object):
                         '<h2>Graph</h2>',
                         '<div id="cyt"></div>\n',
                         '<hr>',
-                        '<h2>Plots</h2>',
-                        '<div class="plots">',
-                        '<img id="journal_plot" src="data:image/png;base64,%s"/>' % self.plots['journal_plot'].getvalue().encode("base64").strip(),
-                        '</div>',
                         '<h2>Proteins</h2>',
                         '<div class="reptable">',
                             self.protsummary.table_to_html(),
+                        '</div>',
+                        '<h2>Plots</h2>',
+                        '<div class="plots">',
+                        '<img id="j_prot_plot" src="data:image/png;base64,%s"/>' % self.plots['j_prot_plot'].getvalue().encode("base64").strip(),
+                        '<img id="j_int_plot" src="data:image/png;base64,%s"/>' % self.plots['j_int_plot'].getvalue().encode("base64").strip(),
                         '</div>',
                     '</div>',
                     '<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>\n',
@@ -435,3 +445,10 @@ class GraphSummary(object):
         total_json = "{\n" + "\n".join(json_nodes) + "\n".join(json_ints) + "\n}"
 
         return total_json
+
+
+class IncorrectPlotName(Exception):
+    '''
+    Raised when attempting to create a plot that does not exist
+    '''
+    pass
