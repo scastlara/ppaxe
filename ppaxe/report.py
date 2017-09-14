@@ -104,17 +104,17 @@ class ReportSummary(object):
         '''
         Plot the number of proteins and interactions by journals
         '''
-        # Parameters for the plot
-        labels = sorted(journals.keys())
+        # Check input
+        if mode != "ints" and mode != "prots":
+            raise IncorrectPlotName("Can't create plot for %s" % mode)
+        # Plot parameters
+        labels = sorted(journals.keys(), key=lambda x: journals[x][mode], reverse=False)
         journal_n = len(labels)
         ind   = np.arange(journal_n)
         width = 0.35
         count  = list()
         for lab in labels:
-            try:
-                count.append(journals[lab][mode])
-            except KeyError:
-                raise IncorrectPlotName("Can't create plot for %s" % mode)
+            count.append(journals[lab][mode])
         # Make the plot
         fig, axis = plt.subplots()
         if mode == "ints":
