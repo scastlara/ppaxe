@@ -32,7 +32,7 @@ def year_extender(years):
             break
         diff = int(years[i + 1]) - int(years[i])
         complete_list.extend(range(int(years[i]), int(years[i]) + diff ))
-    return [str(year) for year in years]
+    return [str(year) for year in complete_list]
 
 # CLASSES
 # ----------------------------------------------
@@ -110,8 +110,11 @@ class ReportSummary(object):
                         journals[article.journal]['ints'] += 1
                         # Count years of interactions in articles
                         years[article.year] += 1
-        figure_ints =  self.__make_journal_plots(journals, mode="ints")
-        figure_prots = self.__make_journal_plots(journals, mode="prots")
+        # Remove journals without ints or prots
+        journals_ints  = {k: v for k, v in journals.items() if v['ints'] > 0}
+        journals_prots = {k: v for k, v in journals.items() if v['prots'] > 0}
+        figure_ints =  self.__make_journal_plots(journals_ints,  mode="ints")
+        figure_prots = self.__make_journal_plots(journals_prots, mode="prots")
         figure_years = self.__make_year_plot(years)
         sio_ints  = cStringIO.StringIO()
         sio_prots = cStringIO.StringIO()
@@ -129,7 +132,7 @@ class ReportSummary(object):
         labels = year_extender(labels)
         year_n = len(labels)
         ind   = np.arange(year_n)
-        width = 0.35
+        width = 0.35 # Arbitrary width of bars
         count  = list()
         for lab in labels:
             if lab in years:
@@ -170,10 +173,16 @@ class ReportSummary(object):
             leglabel = "Proteins"
             color = "#50ac72"
         axis.barh(ind, count, width, color=color)
-        #axis.legend((rects[0]), (leglabel))
+        if journal_n > 20:
+            labelsize = 5
+        elif journal_n > 10:
+            labelsize = 8
+        else:
+            labelsize = 12
         axis.set_yticks(ind)
-        labels = [ lab[:30] + (lab[30:] and '..') for lab in labels ]
-        axis.set_yticklabels(labels)
+        max_label_length = 30 # Need to do this because of matplotlib bug #5456
+        labels = [ lab[:max_label_length] + (lab[max_label_length:] and '..') for lab in labels ]
+        axis.set_yticklabels(labels,  fontsize=labelsize)
         axis.set_title("%s per Journal" % leglabel)
         axis.set_xlabel("count")
         fig.tight_layout()

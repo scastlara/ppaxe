@@ -257,7 +257,7 @@ def test_journal_plots_longjournal():
 
     articles = [
         core.Article(pmid="1234", fulltext=article_text1, journal=journal1, year = "2009"),
-        core.Article(pmid="4321", fulltext=article_text2, journal=journal2, year = "2016")
+        core.Article(pmid="4321", fulltext=article_text2, journal=journal2, year = "2016"),
     ]
 
     for article in articles:
