@@ -21,6 +21,19 @@ def make_html_row(items, header=False):
         row_str = ['<tr>', '\n'.join([ "<td>" + str(x) + "</td>" for x in items]), '</tr>']
         return "\n".join(row_str)
 
+def year_extender(years):
+    '''
+    Fills the missing years in a list of years
+    '''
+    complete_list = list()
+    for i in range(0, len(years)):
+        if i == len(years) - 1:
+            complete_list.append(int(years[i]))
+            break
+        diff = int(years[i + 1]) - int(years[i])
+        complete_list.extend(range(int(years[i]), int(years[i]) + diff ))
+    return complete_list
+
 # CLASSES
 # ----------------------------------------------
 class ReportSummary(object):
@@ -67,7 +80,7 @@ class ReportSummary(object):
         '''
         self.protsummary.makesummary()
         self.graphsummary.makesummary()
-        self.plots['j_int_plot'], self.plots['j_prot_plot'] = self.journal_plots()
+        self.plots['j_int_plot'], self.plots['j_prot_plot'], self.plots['a_year_plot'] = self.journal_plots()
         self.write_html(outfile)
         # self.write_markdown(outfile)
         # self.create_pdf(outfile)
@@ -78,12 +91,15 @@ class ReportSummary(object):
         Returns the base65 binary of the journal plots
         '''
         journals = dict()
+        years = dict()
         for article in self.articles:
             # Initialize
             if article.journal not in journals:
                 journals[article.journal] = dict()
                 journals[article.journal]['ints'] = 0
                 journals[article.journal]['prots'] = 0
+            if article.year not in years:
+                years[article.year] = 0
             # Count proteins
             for sentence in article.sentences:
                 for proteins in sentence.proteins:
@@ -92,13 +108,43 @@ class ReportSummary(object):
                 for candidate in sentence.candidates:
                     if candidate.label is True:
                         journals[article.journal]['ints'] += 1
-        figure_ints = self.__make_journal_plots(journals, mode="ints")
+                        # Count years of interactions in articles
+                        years[article.year] += 1
+        figure_ints =  self.__make_journal_plots(journals, mode="ints")
         figure_prots = self.__make_journal_plots(journals, mode="prots")
+        figure_years = self.__make_year_plot(years)
         sio_ints  = cStringIO.StringIO()
         sio_prots = cStringIO.StringIO()
+        sio_years = cStringIO.StringIO()
         figure_ints.savefig(sio_ints, format="png")
         figure_prots.savefig(sio_prots, format="png")
-        return sio_ints, sio_prots
+        figure_years.savefig(sio_years, format="png")
+        return sio_ints, sio_prots, sio_years
+
+    def __make_year_plot(self, years):
+        '''
+        Makes plots of the interactions per year
+        '''
+        labels = sorted(years.keys())
+        labels = year_extender(labels)
+        year_n = len(labels)
+        ind   = np.arange(year_n)
+        width = 0.35
+        count  = list()
+        for lab in labels:
+            if lab in years:
+                count.append(years[lab])
+            else:
+                count.append(0)
+        # Make the plot
+        fig, axis = plt.subplots()
+        axis.bar(ind, count, width, color="#777acd")
+        axis.set_xticks(ind)
+        axis.set_xticklabels(labels)
+        axis.set_title("Interactions retrieved per Year")
+        axis.set_ylabel("count")
+        plt.tight_layout()
+        return fig
 
     def __make_journal_plots(self, journals, mode):
         '''
@@ -125,7 +171,7 @@ class ReportSummary(object):
             color = "#50ac72"
         axis.barh(ind, count, width, color=color)
         #axis.legend((rects[0]), (leglabel))
-        axis.set_yticks(ind + width / 2)
+        axis.set_yticks(ind)
         axis.set_yticklabels(labels)
         axis.set_title("%s per Journal" % leglabel)
         axis.set_xlabel("count")
@@ -188,6 +234,7 @@ class ReportSummary(object):
                         '<div class="plots">',
                         '<img id="j_prot_plot" src="data:image/png;base64,%s"/>' % self.plots['j_prot_plot'].getvalue().encode("base64").strip(),
                         '<img id="j_int_plot" src="data:image/png;base64,%s"/>' % self.plots['j_int_plot'].getvalue().encode("base64").strip(),
+                        '<img id="a_year_plot" src="data:image/png;base64,%s"/>' % self.plots['a_year_plot'].getvalue().encode("base64").strip(),
                         '</div>',
                     '</div>',
                     '<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>\n',
@@ -347,7 +394,8 @@ class GraphSummary(object):
                     prot2.symbol,
                     prot2.disambiguate(),
                     candidate.to_html(),
-                    article.pmid
+                    article.pmid,
+                    article.year
                 ],
                 ...
             ]
@@ -394,7 +442,8 @@ class GraphSummary(object):
                                 candidate.prot2.symbol,
                                 candidate.prot2.disambiguate(),
                                 candidate.to_html(),
-                                article.pmid
+                                article.pmid,
+                                article.year
                             ]
                         )
         self.uniqinteractions_count = len(self.uniqinteractions)
@@ -407,7 +456,7 @@ class GraphSummary(object):
         colnames = [
             "Confidence", "Protein (A)","Protein (B)",
             "Off.symbol (A)", "Off.symbol (B)",
-            "PMid", "Sentence"
+            "PMid", "Year", "Sentence"
         ]
         table_str = ['<table id="inttable">']
         table_str.append("<thead>")
@@ -423,6 +472,7 @@ class GraphSummary(object):
                 '<a href="http://www.uniprot.org/uniprot/?query=%s&sort=score" target="_blank">%s</a>' % (interaction[2], interaction[2]),
                 '<a href="http://www.uniprot.org/uniprot/?query=%s&sort=score" target="_blank">%s</a>' % (interaction[4], interaction[4]),
                 '<a href="https://www.ncbi.nlm.nih.gov/pubmed/?term=%s" target="_blank">%s</a>' % (interaction[6], interaction[6]),
+                interaction[7],
                 interaction[5]
             ]))
         table_str.append("</tbody>")

@@ -57,7 +57,7 @@ def test_summary_prottable_tohtml():
              The thing is, Schmidtea mediterranea is a good model organism because reasons.
              However, cryoglobulin is better.
          """
-    article = core.Article(pmid="1234", fulltext=article_text)
+    article = core.Article(pmid="1234", fulltext=article_text, year=2015)
     article.extract_sentences()
     for sentence in article.sentences:
         sentence.annotate()
@@ -145,7 +145,7 @@ def test_interaction_table_html():
              CPP3 is a molecular target of Akt3.
              AKT3 is also known to interact with CPP3.
          """
-    article = core.Article(pmid="1234", fulltext=article_text)
+    article = core.Article(pmid="1234", fulltext=article_text, year=2017)
     article.extract_sentences()
     for sentence in article.sentences:
         sentence.annotate()
@@ -163,6 +163,7 @@ def test_interaction_table_html():
 <th>Off.symbol (A)</th>
 <th>Off.symbol (B)</th>
 <th>PMid</th>
+<th>Year</th>
 <th>Sentence</th>
 </tr>
 </thead>
@@ -174,6 +175,7 @@ def test_interaction_table_html():
 <td><a href="http://www.uniprot.org/uniprot/?query=MAPK4&sort=score" target="_blank">MAPK4</a></td>
 <td><a href="http://www.uniprot.org/uniprot/?query=MAPK&sort=score" target="_blank">MAPK</a></td>
 <td><a href="https://www.ncbi.nlm.nih.gov/pubmed/?term=1234" target="_blank">1234</a></td>
+<td>2017</td>
 <td>However , <span class="prot"> Mapk4 </span> <span class="verb">interacts</span> directly with <span class="prot"> MAPK </span> .</td>
 </tr>
 <tr>
@@ -183,6 +185,7 @@ def test_interaction_table_html():
 <td><a href="http://www.uniprot.org/uniprot/?query=CPP3&sort=score" target="_blank">CPP3</a></td>
 <td><a href="http://www.uniprot.org/uniprot/?query=AKT3&sort=score" target="_blank">AKT3</a></td>
 <td><a href="https://www.ncbi.nlm.nih.gov/pubmed/?term=1234" target="_blank">1234</a></td>
+<td>2017</td>
 <td><span class="prot"> CPP3 </span> <span class="verb">is</span> a molecular target of <span class="prot"> Akt3 </span> .</td>
 </tr>
 <tr>
@@ -192,6 +195,7 @@ def test_interaction_table_html():
 <td><a href="http://www.uniprot.org/uniprot/?query=MAPK&sort=score" target="_blank">MAPK</a></td>
 <td><a href="http://www.uniprot.org/uniprot/?query=MAPK4&sort=score" target="_blank">MAPK4</a></td>
 <td><a href="https://www.ncbi.nlm.nih.gov/pubmed/?term=1234" target="_blank">1234</a></td>
+<td>2017</td>
 <td><span class="prot"> MAPK </span> <span class="verb">seems</span> to <span class="verb">interact</span> with <span class="prot"> MAPK4 </span> .</td>
 </tr>
 <tr>
@@ -201,6 +205,7 @@ def test_interaction_table_html():
 <td><a href="http://www.uniprot.org/uniprot/?query=AKT3&sort=score" target="_blank">AKT3</a></td>
 <td><a href="http://www.uniprot.org/uniprot/?query=CPP3&sort=score" target="_blank">CPP3</a></td>
 <td><a href="https://www.ncbi.nlm.nih.gov/pubmed/?term=1234" target="_blank">1234</a></td>
+<td>2017</td>
 <td><span class="prot"> AKT3 </span> <span class="verb">is</span> also <span class="verb">known</span> to <span class="verb">interact</span> with <span class="prot"> CPP3 </span> .</td>
 </tr>
 </tbody>
@@ -224,15 +229,15 @@ def test_journal_plots():
     journal2 = "BMC GENOMICS"
 
     articles = [
-        core.Article(pmid="1234", fulltext=article_text1, journal=journal1),
-        core.Article(pmid="4321", fulltext=article_text2, journal=journal2),
+        core.Article(pmid="1234", fulltext=article_text1, journal=journal1, year = 2009),
+        core.Article(pmid="4321", fulltext=article_text2, journal=journal2, year = 2016)
     ]
 
     for article in articles:
         article.predict_interactions()
     summary = report.ReportSummary(articles)
-    fig1, fig2 = summary.journal_plots()
-    assert(fig1 and fig2)
+    fig1, fig2, fig3 = summary.journal_plots()
+    assert(fig1 and fig2 and fig3)
 
 def test_report_html():
     '''
@@ -250,8 +255,8 @@ def test_report_html():
     journal2 = "BMC GENOMICS"
 
     articles = [
-        core.Article(pmid="1234", fulltext=article_text1, journal=journal1),
-        core.Article(pmid="4321", fulltext=article_text2, journal=journal2),
+        core.Article(pmid="1234", fulltext=article_text1, journal=journal1, year = 2009),
+        core.Article(pmid="4321", fulltext=article_text2, journal=journal2, year = 2016),
     ]
 
     for article in articles:
