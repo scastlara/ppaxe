@@ -32,7 +32,7 @@ def year_extender(years):
             break
         diff = int(years[i + 1]) - int(years[i])
         complete_list.extend(range(int(years[i]), int(years[i]) + diff ))
-    return complete_list
+    return [str(year) for year in years]
 
 # CLASSES
 # ----------------------------------------------
@@ -143,7 +143,6 @@ class ReportSummary(object):
         axis.set_xticklabels(labels)
         axis.set_title("Interactions retrieved per Year")
         axis.set_ylabel("count")
-        fig.subplots_adjust()
         fig.tight_layout()
         return fig
 
@@ -173,10 +172,11 @@ class ReportSummary(object):
         axis.barh(ind, count, width, color=color)
         #axis.legend((rects[0]), (leglabel))
         axis.set_yticks(ind)
+        labels = [ lab[:30] + (lab[30:] and '..') for lab in labels ]
         axis.set_yticklabels(labels)
         axis.set_title("%s per Journal" % leglabel)
         axis.set_xlabel("count")
-        #fig.tight_layout()
+        fig.tight_layout()
         return fig
 
     def summary_table(self):
@@ -212,6 +212,7 @@ class ReportSummary(object):
                 '<meta charset="UTF-8">',
                 '<link rel="stylesheet" type="text/css" href="%s">' % stylesheet,
                 '<link rel="stylesheet" type="text/css" href="%s">' % datatables_css,
+                '<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">',
                 '</head>',
                 '<body>',
                     '<div id="content">',
@@ -231,6 +232,7 @@ class ReportSummary(object):
                         '<div class="reptable">',
                             self.protsummary.table_to_html(),
                         '</div>',
+                        '<hr>',
                         '<h2>Plots</h2>',
                         '<div class="plots">',
                         '<img id="j_prot_plot" src="data:image/png;base64,%s"/>' % self.plots['j_prot_plot'].getvalue().encode("base64").strip(),
@@ -239,6 +241,8 @@ class ReportSummary(object):
                         '</div>',
                     '</div>',
                     '<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>\n',
+                    '<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>',
+                    '<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>',
                     '<script src="%s"></script>\n' % cytotemplate,
                     '<script src="%s"></script>\n' % datatables_js,
                     '''

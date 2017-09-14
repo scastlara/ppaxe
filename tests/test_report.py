@@ -229,8 +229,8 @@ def test_journal_plots():
     journal2 = "BMC GENOMICS"
 
     articles = [
-        core.Article(pmid="1234", fulltext=article_text1, journal=journal1, year = 2009),
-        core.Article(pmid="4321", fulltext=article_text2, journal=journal2, year = 2016)
+        core.Article(pmid="1234", fulltext=article_text1, journal=journal1, year = "2009"),
+        core.Article(pmid="4321", fulltext=article_text2, journal=journal2, year = "2016")
     ]
 
     for article in articles:
@@ -256,8 +256,8 @@ def test_journal_plots_longjournal():
     journal2 = "BMC GENOMICS"
 
     articles = [
-        core.Article(pmid="1234", fulltext=article_text1, journal=journal1, year = 2009),
-        core.Article(pmid="4321", fulltext=article_text2, journal=journal2, year = 2016)
+        core.Article(pmid="1234", fulltext=article_text1, journal=journal1, year = "2009"),
+        core.Article(pmid="4321", fulltext=article_text2, journal=journal2, year = "2016")
     ]
 
     for article in articles:
@@ -266,7 +266,7 @@ def test_journal_plots_longjournal():
     fig1, fig2, fig3 = summary.journal_plots()
     assert(fig1 and fig2 and fig3)
 
-    
+
 def test_report_html():
     '''
     Tests journal plot
@@ -283,8 +283,8 @@ def test_report_html():
     journal2 = "BMC GENOMICS"
 
     articles = [
-        core.Article(pmid="1234", fulltext=article_text1, journal=journal1, year = 2009),
-        core.Article(pmid="4321", fulltext=article_text2, journal=journal2, year = 2016),
+        core.Article(pmid="1234", fulltext=article_text1, journal=journal1, year = "2009"),
+        core.Article(pmid="4321", fulltext=article_text2, journal=journal2, year = "2016"),
     ]
 
     for article in articles:
