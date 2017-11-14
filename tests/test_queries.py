@@ -82,3 +82,11 @@ def test_article_journal_pubmed():
     query.get_articles()
     for article in query:
         assert(article.journal == "Aquatic toxicology (Amsterdam, Netherlands)")
+
+def test_too_many_pmids():
+    '''
+    Tests if ppaxe can handle many PMID in pmid_2_pmc
+    '''
+    identifiers = ["26267445"] * 300
+    pmcids = core.pmid_2_pmc(identifiers)
+    assert(len(pmcids) == 1)

@@ -7,6 +7,7 @@ import requests
 from xml.dom import minidom
 import json
 import re
+import time
 from pycorenlp import StanfordCoreNLP
 import itertools
 from bisect import bisect_left
@@ -28,21 +29,25 @@ def pmid_2_pmc(identifiers):
     Transforms a list of PubMed Ids to PMC ids
     '''
     pmcids = set()
-    params = {
-        'ids': ",".join(identifiers),
-        'format': 'json'
-    }
-    req = requests.get("https://www.ncbi.nlm.nih.gov/pmc/utils/idconv/v1.0/", params=params)
-    if req.status_code == 200:
-        response = json.loads(req.content)
+    maxidents = 50
 
-        for record in response['records']:
-            if 'status' in record:
-                continue
-            pmcids.add(record['pmcid'][3:])
-        return list(pmcids)
-    else:
-        raise PubMedQueryError("Can't convert identifiers through Pubmed idconv tool.")
+    for subset in [identifiers[x:x+maxidents] for x in range(0, len(identifiers),maxidents)]:
+        params = {
+            'ids': ",".join(subset),
+            'format': 'json'
+        }
+        req = requests.get("https://www.ncbi.nlm.nih.gov/pmc/utils/idconv/v1.0/", params=params)
+        if req.status_code == 200:
+            response = json.loads(req.content)
+
+            for record in response['records']:
+                if 'status' in record:
+                    continue
+                pmcids.add(record['pmcid'][3:])
+        else:
+            raise PubMedQueryError("Can't convert identifiers through Pubmed idconv tool.")
+        time.sleep(3)
+    return list(pmcids)
 
 def take_closest(mylist, mynumber):
     """
