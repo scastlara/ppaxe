@@ -29,7 +29,7 @@ def pmid_2_pmc(identifiers):
     Transforms a list of PubMed Ids to PMC ids
     '''
     pmcids = set()
-    maxidents = 50
+    maxidents = 200
 
     for subset in [identifiers[x:x+maxidents] for x in range(0, len(identifiers),maxidents)]:
         params = {
@@ -183,7 +183,7 @@ class PMQuery(object):
                 abstract_text = "\n".join(abstract_text)
                 if not abstract_text.strip():
                     continue
-                self.found.add(pmid)
+                self.found.add(pmid_text)
                 self.articles.append(Article(pmid=pmid_text, journal=journal_text, year=year, abstract=abstract_text))
             self.notfound = set(self.ids).difference(self.found)
         else:
@@ -193,25 +193,29 @@ class PMQuery(object):
         '''
         Retrieves the Fulltext or the abstracts of the specified Articles
         '''
-        if self.database == "PMC":
-            # Do fulltext query
-            params = {
-                'id': ",".join(pmid_2_pmc(self.ids)),
-                'db': 'pmc',
-            }
-            req = requests.get("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi", params=params)
-            self.__get_pmc(req)
-        elif self.database == "PUBMED":
-            # Do abstract query
-            params = {
-                'id':      ",".join(self.ids),
-                'db':      'pubmed',
-                'retmode': 'xml'
-            }
-            req = requests.get("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi", params=params)
-            self.__get_pubmed(req)
-        else:
-            logging.error('%s: Incorrect database. Choose "PMC" or "PUBMED"', self.database)
+        maxidents = 200 # max number of articles per GET request
+
+        for subset in [self.ids[x:x+maxidents] for x in range(0, len(self.ids), maxidents)]:
+            if self.database == "PMC":
+                # Do fulltext query
+
+                params = {
+                    'id': ",".join(pmid_2_pmc(subset)),
+                    'db': 'pmc',
+                }
+                req = requests.get("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi", params=params)
+                self.__get_pmc(req)
+            elif self.database == "PUBMED":
+                # Do abstract query
+                params = {
+                    'id':      ",".join(subset),
+                    'db':      'pubmed',
+                    'retmode': 'xml'
+                }
+                req = requests.get("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi", params=params)
+                self.__get_pubmed(req)
+            else:
+                logging.error('%s: Incorrect database. Choose "PMC" or "PUBMED"', self.database)
 
     def __iter__(self):
         return iter(self.articles)
