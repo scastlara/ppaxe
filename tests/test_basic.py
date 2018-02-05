@@ -276,4 +276,4 @@ def test_decode_html():
     sentence = '10-year risk &lt; 10% (I),10 - year risk=%10 - 20 (II), and 10-year risk &gt; 20% (III).'
     article = core.Article(pmid="1234", fulltext=sentence)
     article.extract_sentences()
-    assert(article.sentences[0] == '10-year risk < 10% (I),10 - year risk=%10 - 20 (II), and 10-year risk > 20% (III).')
+    assert(article.sentences[0].originaltext == '10-year risk < 10% (I),10 - year risk=%10 - 20 (II), and 10-year risk > 20% (III).')
