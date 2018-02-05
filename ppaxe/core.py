@@ -17,6 +17,7 @@ import pkg_resources
 import cPickle as pickle
 from scipy import sparse
 import logging
+from HTMLParser import HTMLParser
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -367,9 +368,11 @@ class Article(object):
             sentences = text.split("<stop>")
             #sentences = sentences[:-1]
             sentences = [s.strip() for s in sentences]
+            h = HTMLParser()
             for sentence in sentences:
                 if not sentence.strip():
                     continue
+                sentence = h.unescape(sentence)
                 self.sentences.append(Sentence(originaltext=sentence))
 
     def count_genes(self):
