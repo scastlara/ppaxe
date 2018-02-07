@@ -314,9 +314,9 @@ class Article(object):
         '''
         text = ""
         if source == "fulltext":
-            text = self.fulltext
+            text = str(self.fulltext)
         else:
-            text = self.abstract
+            text = str(self.abstract)
 
         if mode == "no-split":
             # Don't try to separate the sentence.
@@ -370,11 +370,11 @@ class Article(object):
             sentences = [s.strip() for s in sentences]
             h = HTMLParser()
             for sentence in sentences:
+                sentence = h.unescape(sentence)
                 if not sentence.strip():
                     continue
-                sentence = h.unescape(sentence)
                 self.sentences.append(Sentence(originaltext=sentence))
-
+                
     def count_genes(self):
         '''
         Returns how many times each gene appears.

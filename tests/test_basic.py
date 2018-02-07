@@ -277,3 +277,13 @@ def test_decode_html():
     article = core.Article(pmid="1234", fulltext=sentence)
     article.extract_sentences()
     assert(article.sentences[0].originaltext == '10-year risk < 10% (I),10 - year risk=%10 - 20 (II), and 10-year risk > 20% (III).')
+
+def test_number():
+    '''
+    Tests passing non string to StanfordCoreNLP
+    '''
+    sentence = 1
+    article = core.Article(pmid="1234", fulltext=sentence)
+    article.extract_sentences()
+    for sentence in article.sentences:
+        sentence.annotate()
