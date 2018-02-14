@@ -371,10 +371,10 @@ class Article(object):
             h = HTMLParser()
             for sentence in sentences:
                 sentence = h.unescape(sentence)
-                if not sentence.strip():
+                if not sentence.strip() or not isinstance(sentence, str):
                     continue
                 self.sentences.append(Sentence(originaltext=sentence))
-                
+
     def count_genes(self):
         '''
         Returns how many times each gene appears.
