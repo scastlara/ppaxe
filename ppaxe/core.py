@@ -370,7 +370,7 @@ class Article(object):
             sentences = [s.strip() for s in sentences]
             h = HTMLParser()
             for sentence in sentences:
-                sentence = h.unescape(sentence)
+                sentence = str(h.unescape(sentence))
                 if not sentence.strip() or not isinstance(sentence, str):
                     continue
                 self.sentences.append(Sentence(originaltext=sentence))
