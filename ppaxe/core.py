@@ -495,7 +495,6 @@ class Sentence(object):
         if not self.originaltext.strip():
             self.tokens = ""
         annotated = json.loads(NLP.annotate(self.originaltext))
-        #print(annotated)
         if annotated['sentences']:
             self.tokens = annotated['sentences'][0]['tokens']
 
