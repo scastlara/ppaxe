@@ -59,10 +59,23 @@ The report output (`option -r`) will contain a simple summary of the analysis, t
 <img src="https://raw.githubusercontent.com/scastlara/ppaxe/master/ppaxe/data/report1-example.png"/>
 <img src="https://raw.githubusercontent.com/scastlara/ppaxe/master/ppaxe/data/report2-example.png"/>
 
-## Prerequisites
 
+## Installing
 
+### Docker
+To download and use the ppaxe Docker image:
+
+```sh
+docker pull compgenlabub/ppaxe
+docker run -v /local/path/to/output:/ppaxe/output:rw \
+              ppaxe.docker -v -p ./papers.pmids -o ./output.tbl -r ./report
 ```
+
+### Install ppaxe manually
+
+* **Prerequisites**
+
+```sh
 xml.dom
 numpy
 pycorenlp
@@ -70,21 +83,9 @@ cPickle
 scipy
 ```
 
-## Installing
-
-### Docker
-To download and use the ppaxe Docker image:
-
-```
-docker pull compgenlabub/ppaxe
-docker run -v /local/path/to/output:/ppaxe/output:rw \
-              ppaxe.docker -v -p ./papers.pmids -o ./output.tbl -r ./report
-```
-
-### Install ppaxe manually
 You can install this package manuallly using _pip_. However, before doing so, you have to download the [Random Forest predictor](https://www.dropbox.com/s/t6qcl19g536c0zu/RF_scikit.pkl?dl=0) and place it in `ppaxe/data`.
 
-```
+```sh
 # Clone the repository
 git clone https://github.com/scastlara/ppaxe.git
 
@@ -95,11 +96,11 @@ wget https://www.dropbox.com/s/t6qcl19g536c0zu/RF_scikit.pkl?dl=0 -O ppaxe/ppaxe
 pip install ppaxe
 ```
 
-##### Download StanfordCoreNLP
-In order to use the package you will need a [StanfordCoreNLP](https://stanfordnlp.github.io/CoreNLP) server setup with
- the [Protein/gene Tagger](https://www.dropbox.com/s/ec3a4ey7s0k6qgy/FINAL-ner-model.AImed%2BMedTag%2BBioInfer.ser.gz?dl=0).
+* **Download StanfordCoreNLP**
 
- ```
+In order to use the package you will need a [StanfordCoreNLP](https://stanfordnlp.github.io/CoreNLP) server setup with the [Protein/gene Tagger](https://www.dropbox.com/s/ec3a4ey7s0k6qgy/FINAL-ner-model.AImed%2BMedTag%2BBioInfer.ser.gz?dl=0).
+
+```sh
  # Download StanfordCoreNLP
  wget http://nlp.stanford.edu/software/stanford-corenlp-full-2017-06-09.zip
  unzip stanford-corenlp-full-2017-06-09.zip
@@ -116,7 +117,7 @@ In order to use the package you will need a [StanfordCoreNLP](https://stanfordnl
  # Start the StanfordCoreNLP server
  cd stanford-corenlp-full-2017-06-09/
 java -mx1000m -cp ./stanford-corenlp-3.8.0.jar:stanford-english-corenlp-2017-06-09-models.jar edu.stanford.nlp.pipeline.StanfordCoreNLPServer -port 9000 -serverProperties ~/ppaxe/ppaxe/data/server.properties
- ```
+```
 
 Once the server is up and running and ppaxe has been installed, you are good to go.
 
@@ -124,23 +125,21 @@ By default, ppaxe will assume the server is available at localhost:9000. If you 
 
 * **Start the server**
 
-```
+```sh
 # Change the location of the ner tagger in server.properties manually
 java -mx10000m -cp ./stanford-corenlp-3.8.0.jar:stanford-english-corenlp-2017-06-09-models.jar edu.stanford.nlp.pipeline.StanfordCoreNLPServer -port your_port -serverProperties ppaxe/data/server.properties
 ```
 
 * **Use the ppaxe package**
 
-
- ```py
-
+```py
 from ppaxe import core as ppcore
 from pycorenlp import StanfordCoreNLP
 
 ppcore.NLP = StanfordCoreNLP(your_new_adress)
 
 # Do whatever you want
- ```
+```
 
 ## Documentation
 
