@@ -66,7 +66,7 @@ The report output (`option -r`) will contain a simple summary of the analysis, t
 To download and use the ppaxe Docker image:
 
 ```sh
-docker pull compgenlabub/ppaxe
+docker pull compgenlabub/ppaxe:latest
 docker run -v /local/path/to/output:/ppaxe/output:rw \
               ppaxe.docker -v -p ./papers.pmids -o ./output.tbl -r ./report
 ```
