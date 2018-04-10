@@ -90,3 +90,12 @@ def test_too_many_pmids():
     identifiers = ["26267445"] * 300
     pmcids = core.pmid_2_pmc(identifiers)
     assert(len(pmcids) == 1)
+
+def test_too_many_pmids_2():
+    '''
+    Tests if ppaxe can handle a lot of PMIDs (more than GET can handle)
+    '''
+    identifiers = ["26267445"] * 2000
+    query = core.PMQuery(ids=identifiers, database="PUBMED")
+    query.get_articles()
+    assert(query.found == set(["26267445"]))

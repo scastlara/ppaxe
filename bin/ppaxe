@@ -113,7 +113,10 @@ def get_ppi(options, start_time, pmids):
         # Annotate sentences
         for sentence in article.sentences:
             stats['total_sentences'] += 1
-            sentence.annotate()
+            try:
+                sentence.annotate()
+            except ValueError:
+                continue
             sentence.get_candidates()
             # Predict candidate interactions
             for candidate in sentence.candidates:
