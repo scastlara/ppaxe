@@ -49,7 +49,7 @@ summary.make_report("report_file")
 ppaxe -p pmids.txt -d PMC -v -o output.tbl -r report
 
 # Or with docker image
-docker run -v /local/path/to/output:/ppaxe/output:rw ppaxe.docker -v -p pmids.txt -o output.tbl -r report
+docker run -v /local/path/to/output:/ppaxe/output:rw compgenlabub/ppaxe -v -p pmids.txt -o output.tbl -r report
 ```
 
 ### Report
@@ -68,7 +68,7 @@ To download and use the ppaxe Docker image:
 ```sh
 docker pull compgenlabub/ppaxe:latest
 docker run -v /local/path/to/output:/ppaxe/output:rw \
-              ppaxe.docker -v -p ./papers.pmids -o ./output.tbl -r ./report
+              compgenlabub/ppaxe -v -p ./papers.pmids -o ./output.tbl -r ./report
 ```
 
 ### Install ppaxe manually
