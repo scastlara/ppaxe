@@ -8,7 +8,11 @@
 #
 # Run this docker with:
 #   docker run -v /local/path/to/output:/ppaxe/output:rw \
-#               ppaxe.docker -v -p ./output/kk.pmids -o ./output/kk.tbl -r ./output/kk.html
+#               ppaxe.docker -v -p ./papers.pmids -o ./papers.tbl -r ./papers.html
+#   the container working local folder is set to /ppaxe/output
+#   where the program will return by default the results.
+#   You must mount the container folder to your "/local/path/to/output"
+#   to keep the final results, with the docker "-v" switch.
 #
 FROM ubuntu:16.04
 
@@ -80,6 +84,6 @@ cd /ppaxe/output\n\
   > /ppaxe/entrypoint.sh \
   && chmod +x /ppaxe/entrypoint.sh
 
-WORKDIR /ppaxe
+WORKDIR /ppaxe/output
 
 ENTRYPOINT ["/ppaxe/entrypoint.sh"]
