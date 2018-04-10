@@ -4,7 +4,7 @@
 #    + python 2.7
 #
 # Build this docker with:
-#   docker build -t ppaxe.docker -f=./Dockerfile_ppaxe .
+#   docker build -t ppaxe.docker -f=./Dockerfile .
 #
 # Run this docker with:
 #   docker run -v /local/path/to/output:/ppaxe/output:rw \
@@ -47,11 +47,14 @@ RUN pip install -U "matplotlib==2.0.2"
 
 RUN wget http://nlp.stanford.edu/software/stanford-corenlp-full-2017-06-09.zip \
     && unzip stanford-corenlp-full-2017-06-09.zip \
-    && wget https://www.dropbox.com/s/ec3a4ey7s0k6qgy/FINAL-ner-model.AImed%2BMedTag%2BBioInfer.ser.gz?dl=0 -O FINAL-ner-model.AImed+MedTag+BioInfer.ser.gz \
+    && wget https://www.dropbox.com/s/ec3a4ey7s0k6qgy/FINAL-ner-model.AImed%2BMedTag%2BBioInfer.ser.gz?dl=0 \
+         -O /stanford-corenlp-full-2017-06-09/FINAL-ner-model.AImed+MedTag+BioInfer.ser.gz \
     && wget http://nlp.stanford.edu/software/stanford-english-corenlp-2017-06-09-models.jar \
-         -O stanford-corenlp-full-2017-06-09/stanford-english-corenlp-2017-06-09-models.jar 
+         -O /stanford-corenlp-full-2017-06-09/stanford-english-corenlp-2017-06-09-models.jar 
 
-RUN git clone https://github.com/CompGenLabUB/ppaxe.git
+RUN git --no-pager clone https://github.com/CompGenLabUB/ppaxe.git
+RUN sed -i 's%\.\./%/stanford-corenlp-full-2017-06-09/%' \
+           /ppaxe/ppaxe/data/server.properties
 
 WORKDIR /ppaxe
 
@@ -59,30 +62,25 @@ RUN wget https://www.dropbox.com/s/t6qcl19g536c0zu/RF_scikit.pkl?dl=0 \
       -O ./ppaxe/data/RF_scikit.pkl \
     && pip install ./
 
-# WORKDIR /stanford-corenlp-full-2017-06-09
-# 
-# RUN java -mx1000m \
-#          -cp ./stanford-corenlp-3.8.0.jar:stanford-english-corenlp-2017-06-09-models.jar \
-#          edu.stanford.nlp.pipeline.StanfordCoreNLPServer \
-#          -port 9000 \
-#          -serverProperties ../ppaxe/ppaxe/data/server.properties &
-
 RUN mkdir -vp /ppaxe/output \
     && chmod -v a+rwx /ppaxe/output
 
 RUN \
   echo '#!/bin/bash\n\
 SPD="/stanford-corenlp-full-2017-06-09"\n\
-java -mx1000m \\n\
-         -cp $SPD/stanford-corenlp-3.8.0.jar:stanford-english-corenlp-2017-06-09-models.jar \\n\
-         $SPD/edu.stanford.nlp.pipeline.StanfordCoreNLPServer \\n\
-         -port 9000 \\n\
-         -serverProperties /ppaxe/ppaxe/data/server.properties &\n\
+java -mx1000m \\\n\
+         -cp $SPD/stanford-corenlp-3.8.0.jar:$SPD/stanford-english-corenlp-2017-06-09-models.jar \\\n\
+         edu.stanford.nlp.pipeline.StanfordCoreNLPServer \\\n\
+         -port 9000 \\\n\
+         -serverProperties /ppaxe/ppaxe/data/server.properties \\\n\
+         2> /dev/null 1>&2 &\n\
 \n\
 cd /ppaxe/output\n\
 /ppaxe/bin/ppaxe $@\n' \
   > /ppaxe/entrypoint.sh \
   && chmod +x /ppaxe/entrypoint.sh
+
+# RUN cat /ppaxe/entrypoint.sh
 
 WORKDIR /ppaxe/output
 
