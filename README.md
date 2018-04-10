@@ -73,9 +73,7 @@ scipy
 ## Installing
 
 ### Docker
-You can download a docker image with ppaxe from here.
-
-To download and use ppaxe:
+To download and use the ppaxe Docker image:
 
 ```
 docker pull compgenlabub/ppaxe
