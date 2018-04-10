@@ -75,9 +75,10 @@ scipy
 ### Docker
 You can download a docker image with ppaxe from here.
 
-To use ppaxe:
+To download and use ppaxe:
 
 ```
+docker pull compgenlabub/ppaxe
 docker run -v /local/path/to/output:/ppaxe/output:rw \
               ppaxe.docker -v -p ./papers.pmids -o ./output.tbl -r ./report
 ```
