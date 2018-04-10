@@ -8,6 +8,57 @@
 Tool to retrieve **protein-protein interactions** and calculate protein/gene symbol ocurrence in the scientific literature (PubMed & PubMedCentral).
 
 
+## Usage
+
+### ppaxe classes
+
+```py
+from ppaxe import core as ppcore
+from ppaxe import report
+
+# Perform query to PubMedCentral
+pmids = ["28615517","28839427","28831451","28824332","28819371","28819357"]
+query = ppcore.PMQuery(ids=pmids, database="PMC")
+query.get_articles()
+
+# Retrieve interactions from text
+for article in query:
+    article.predict_interactions()
+
+# Iterate through predictions
+for article in query:
+    for sentence in article.sentences:
+        for candidate in sentence.candidates:
+            if candidate.label is True:
+                # We have an interaction
+                print("%s interacts with %s in article %s" % (candidate.prot1.symbol, candidate.prot2.symbol, article.pmid ))
+                print(candidate.to_html())
+
+# Print html report
+# Will create 'report_file.html'
+summary = report.ReportSummary(query)
+summary.make_report("report_file")
+```
+
+### ppaxe script
+
+```sh
+# Will read PubMed ids in pmids.txt, predict the interactions
+# in their fulltext from PubMedCentral, and print a tabular output
+# and an html report
+ppaxe -p pmids.txt -d PMC -v -o output.tbl -r report
+
+# Or with docker image
+docker run -v /local/path/to/output:/ppaxe/output:rw ppaxe.docker -v -p pmids.txt -o output.tbl -r report
+```
+
+### Report
+
+The report output (`option -r`) will contain a simple summary of the analysis, the interactions retrieved (including the sentences from which they were retrieved), a table with the protein/gene counts and a graph visualization made using [cytoscape.js](http://js.cytoscape.org/).
+
+<img src="https://raw.githubusercontent.com/scastlara/ppaxe/master/ppaxe/data/report1-example.png"/>
+<img src="https://raw.githubusercontent.com/scastlara/ppaxe/master/ppaxe/data/report2-example.png"/>
+
 ## Prerequisites
 
 
@@ -21,8 +72,18 @@ scipy
 
 ## Installing
 
-#### Install ppaxe
-You can install this package using _pip_. However, before doing so, you have to download the [Random Forest predictor](https://www.dropbox.com/s/t6qcl19g536c0zu/RF_scikit.pkl?dl=0) and place it in `ppaxe/data`.
+### Docker
+You can download a docker image with ppaxe from here.
+
+To use ppaxe:
+
+```
+docker run -v /local/path/to/output:/ppaxe/output:rw \
+              ppaxe.docker -v -p ./papers.pmids -o ./output.tbl -r ./report
+```
+
+### Install ppaxe manually
+You can install this package manuallly using _pip_. However, before doing so, you have to download the [Random Forest predictor](https://www.dropbox.com/s/t6qcl19g536c0zu/RF_scikit.pkl?dl=0) and place it in `ppaxe/data`.
 
 ```
 # Clone the repository
@@ -35,7 +96,7 @@ wget https://www.dropbox.com/s/t6qcl19g536c0zu/RF_scikit.pkl?dl=0 -O ppaxe/ppaxe
 pip install ppaxe
 ```
 
-#### Download StanfordCoreNLP
+##### Download StanfordCoreNLP
 In order to use the package you will need a [StanfordCoreNLP](https://stanfordnlp.github.io/CoreNLP) server setup with
  the [Protein/gene Tagger](https://www.dropbox.com/s/ec3a4ey7s0k6qgy/FINAL-ner-model.AImed%2BMedTag%2BBioInfer.ser.gz?dl=0).
 
@@ -81,54 +142,6 @@ ppcore.NLP = StanfordCoreNLP(your_new_adress)
 
 # Do whatever you want
  ```
-
-## Usage
-
-### ppaxe classes
-
-```py
-from ppaxe import core as ppcore
-from ppaxe import report
-
-# Perform query to PubMedCentral
-pmids = ["28615517","28839427","28831451","28824332","28819371","28819357"]
-query = ppcore.PMQuery(ids=pmids, database="PMC")
-query.get_articles()
-
-# Retrieve interactions from text
-for article in query:
-    article.predict_interactions()
-
-# Iterate through predictions
-for article in query:
-    for sentence in article.sentences:
-        for candidate in sentence.candidates:
-            if candidate.label is True:
-                # We have an interaction
-                print("%s interacts with %s in article %s" % (candidate.prot1.symbol, candidate.prot2.symbol, article.pmid ))
-                print(candidate.to_html())
-
-# Print html report
-# Will create 'report_file.html'
-summary = report.ReportSummary(query)
-summary.make_report("report_file")
-```
-
-### ppaxe script
-
-```sh
-# Will read PubMed ids in pmids.txt, predict the interactions
-# in their fulltext from PubMedCentral, and print a tabular output
-# and an html report
-ppaxe -p pmids.txt -d PMC -v -o output.tbl -r report
-```
-
-### Report
-
-The report output (`option -r`) will contain a simple summary of the analysis, the interactions retrieved (including the sentences from which they were retrieved), a table with the protein/gene counts and a graph visualization made using [cytoscape.js](http://js.cytoscape.org/).
-
-<img src="https://raw.githubusercontent.com/scastlara/ppaxe/master/ppaxe/data/report1-example.png"/>
-<img src="https://raw.githubusercontent.com/scastlara/ppaxe/master/ppaxe/data/report2-example.png"/>
 
 ## Documentation
 
