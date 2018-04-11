@@ -14,13 +14,23 @@ from bisect import bisect_left
 import math
 import sys
 import pkg_resources
-import cPickle as pickle
 from scipy import sparse
 import logging
-from HTMLParser import HTMLParser
 
-reload(sys)
-sys.setdefaultencoding('utf8')
+try:
+    # For python 2.7
+    import cPickle as pickle
+    from HTMLParser import HTMLParser
+    reload(sys)
+    sys.setdefaultencoding('utf8')
+except:
+    # For python 3
+    print("Python3")
+    import _pickle as pickle
+    from html.parser import HTMLParser
+    from importlib import reload
+
+
 NLP = StanfordCoreNLP('http://localhost:9000')
 
 # FUNCTIONS
@@ -39,8 +49,7 @@ def pmid_2_pmc(identifiers):
         }
         req = requests.get("https://www.ncbi.nlm.nih.gov/pmc/utils/idconv/v1.0/", params=params)
         if req.status_code == 200:
-            response = json.loads(req.content)
-
+            response = json.loads(req.content.decode('latin1'))
             for record in response['records']:
                 if 'status' in record:
                     continue
@@ -83,7 +92,7 @@ def minidom_to_text(minidom):
     '''
     Takes a minidom object and returns the text contained in it without the tags
     '''
-    return " ".join(t.nodeValue.encode('utf-8') for t in minidom.childNodes if t.nodeType == t.TEXT_NODE)
+    return " ".join(t.nodeValue for t in minidom.childNodes if t.nodeType == t.TEXT_NODE)
 
 # CLASSES
 # ----------------------------------------------
@@ -635,7 +644,11 @@ class InteractionCandidate(object):
 
     PRED_FILE = pkg_resources.resource_filename('ppaxe', 'data/RF_scikit.pkl')
     with open(PRED_FILE, 'rb') as f:
-        predictor = pickle.load(f)
+        try:
+            predictor = pickle.load(f)
+        except:
+            predictor = pickle.load(f, encoding='latin1')
+
 
     def __init__(self, prot1, prot2):
         '''
@@ -913,7 +926,7 @@ class InteractionCandidate(object):
             if token['lemma'] in keywords:
                 keywords[token['lemma']] += 1
 
-        for word, value in sorted(keywords.iteritems()):
+        for word, value in sorted(keywords.items()):
             if value > 0:
                 self.feat_cols.append(self.feat_current_col)
                 self.feat_vals.append(value)

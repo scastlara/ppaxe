@@ -5,7 +5,10 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
-import cStringIO
+import base64
+
+from io import BytesIO
+
 
 # FUNCTIONS
 # ----------------------------------------------
@@ -116,9 +119,9 @@ class ReportSummary(object):
         figure_ints =  self.__make_journal_plots(journals_ints,  mode="ints")
         figure_prots = self.__make_journal_plots(journals_prots, mode="prots")
         figure_years = self.__make_year_plot(years)
-        sio_ints  = cStringIO.StringIO()
-        sio_prots = cStringIO.StringIO()
-        sio_years = cStringIO.StringIO()
+        sio_ints  = BytesIO()
+        sio_prots = BytesIO()
+        sio_years = BytesIO()
         figure_ints.savefig(sio_ints, format="png")
         figure_prots.savefig(sio_prots, format="png")
         figure_years.savefig(sio_years, format="png")
@@ -244,9 +247,9 @@ class ReportSummary(object):
                         '<hr>',
                         '<h2>Plots</h2>',
                         '<div class="plots">',
-                        '<img id="j_prot_plot" src="data:image/png;base64,%s"/>' % self.plots['j_prot_plot'].getvalue().encode("base64").strip(),
-                        '<img id="j_int_plot" src="data:image/png;base64,%s"/>' % self.plots['j_int_plot'].getvalue().encode("base64").strip(),
-                        '<img id="a_year_plot" src="data:image/png;base64,%s"/>' % self.plots['a_year_plot'].getvalue().encode("base64").strip(),
+                        '<img id="j_prot_plot" src="data:image/png;base64,%s"/>' % base64.b64encode(self.plots['j_prot_plot'].getvalue()).strip(),
+                        '<img id="j_int_plot" src="data:image/png;base64,%s"/>' % base64.b64encode(self.plots['j_int_plot'].getvalue()).strip(),
+                        '<img id="a_year_plot" src="data:image/png;base64,%s"/>' % base64.b64encode(self.plots['a_year_plot'].getvalue()).strip(),
                         '</div>',
                     '</div>',
                     '<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>\n',

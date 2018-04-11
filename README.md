@@ -12,7 +12,7 @@ Tool to retrieve **protein-protein interactions** and calculate protein/gene sym
 
 ### ppaxe classes
 
-```py
+```python
 from ppaxe import core as ppcore
 from ppaxe import report
 
@@ -132,7 +132,7 @@ java -mx10000m -cp ./stanford-corenlp-3.8.0.jar:stanford-english-corenlp-2017-06
 
 * **Use the ppaxe package**
 
-```py
+```python
 from ppaxe import core as ppcore
 from pycorenlp import StanfordCoreNLP
 

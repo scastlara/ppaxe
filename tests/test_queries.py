@@ -18,8 +18,8 @@ def test_multiple_article_query():
     '''
     query = core.PMQuery(ids=["25615823","27612382"], database="PMC")
     query.get_articles()
-    pmid_concatenation = query.articles[0].pmid + query.articles[1].pmid
-    assert(pmid_concatenation == "2561582327612382")
+    pmid_concatenation = set([query.articles[0].pmid, query.articles[1].pmid])
+    assert(pmid_concatenation == set(["25615823","27612382"]))
 
 def test_query_text():
     '''
