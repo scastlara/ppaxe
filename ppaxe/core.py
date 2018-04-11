@@ -16,6 +16,8 @@ import sys
 import pkg_resources
 from scipy import sparse
 import logging
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
 
 try:
     # For python 2.7
@@ -25,7 +27,6 @@ try:
     sys.setdefaultencoding('utf8')
 except:
     # For python 3
-    print("Python3")
     import _pickle as pickle
     from html.parser import HTMLParser
     from importlib import reload
