@@ -5,7 +5,9 @@
 
 -----
 
-Tool to retrieve **protein-protein interactions** and calculate protein/gene symbol ocurrence in the scientific literature (PubMed & PubMedCentral).
+Tool to retrieve **protein-protein interactions** and calculate protein/gene symbol ocurrence in the scientific literature (PubMed & PubMedCentral). Contains two python modules (`core` and `report`), and a python script (`ppaxe`).
+
+Available for `python 2.7` and `python 3.x`, and also as a standalone [docker image](https://hub.docker.com/r/compgenlabub/ppaxe/).
 
 
 ## Usage
