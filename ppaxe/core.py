@@ -424,6 +424,20 @@ class Protein(object):
         Length of position list.
 
     '''
+    GENEDICT = dict()
+    GENEDICTFILE = pkg_resources.resource_filename('ppaxe', 'data/HGNC_gene_dictionary.txt')
+
+    try:
+        with open(GENEDICTFILE, 'rb') as f:
+            for line in f:
+                line = line.strip()
+                cols = line.split("\t")
+                for alias in cols[1:]:
+                    GENEDICT[alias.upper()] = cols[0]
+    except Exception:
+        raise GeneDictError("Can't read %s\n" % GENEDICTFILE)
+
+
     def __init__(self, symbol, positions, sentence):
         '''
         Parameters
@@ -452,7 +466,10 @@ class Protein(object):
         disambiguated = self.symbol.upper()
         disambiguated = disambiguated.replace("'", "")
         disambiguated = disambiguated.replace('"', '')
-        return disambiguated
+        if disambiguated in Protein.GENEDICT:
+            return Protein.GENEDICT[disambiguated]
+        else:
+            return disambiguated
 
     def __str__(self):
         return "%s found in positions %s" % (self.symbol, ":".join([ str(idx) for idx in self.positions ]))
@@ -1042,5 +1059,11 @@ class ConnectionError(Exception):
 class ProteinNotFound(Exception):
     '''
     Raised when protein is not in Summary class
+    '''
+    pass
+
+class GeneDictError(Exception):
+    '''
+    Raised when dictionary can't be read
     '''
     pass
