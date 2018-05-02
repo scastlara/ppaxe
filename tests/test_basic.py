@@ -287,3 +287,21 @@ def test_number():
     article.extract_sentences()
     for sentence in article.sentences:
         sentence.annotate()
+
+def test_disambiguation_positive():
+    '''
+    Tests a correct disambiguation
+    '''
+    protname = "albumin"
+    protein = core.Protein(symbol=protname, positions=[1,2], sentence="placeholder")
+    disamb = protein.disambiguate()
+    assert(disamb == "ALB")
+
+def test_disambiguation_negative():
+    '''
+    Tests a incorrect disambiguation
+    '''
+    protname = "tHISISNOTAKNOWNPROTEIn"
+    protein = core.Protein(symbol=protname, positions=[1,2], sentence="placeholder")
+    disamb = protein.disambiguate()
+    assert(disamb == "THISISNOTAKNOWNPROTEIN")
