@@ -305,3 +305,15 @@ def test_disambiguation_negative():
     protein = core.Protein(symbol=protname, positions=[1,2], sentence="placeholder")
     disamb = protein.disambiguate()
     assert(disamb == "THISISNOTAKNOWNPROTEIN")
+
+def test_multiple_get_candidates():
+    '''
+    Tests if multiple calls to get_candidates() does not increase number of candidates
+    '''
+    sentence = core.Sentence(originaltext='MAPK4 interacts with MAPK2.')
+    sentence.annotate()
+    sentence.get_candidates()
+    ocandidates = len(sentence.candidates)
+    sentence.get_candidates()
+    fcandidates = len(sentence.candidates)
+    assert(ocandidates == fcandidates)

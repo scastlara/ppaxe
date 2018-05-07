@@ -70,6 +70,7 @@ class ReportSummary(object):
         self.protsummary  = ProteinSummary(self.articles)
         self.graphsummary = GraphSummary(self.articles)
         self.totalarticles = len(self.articles)
+        self.totalsentences = sum([ len(art.sentences) for art in self.articles ])
         self.plots = dict()
 
     def make_report(self, outfile="report"):
@@ -197,6 +198,7 @@ class ReportSummary(object):
         '''
         table_str = ['<table class="summarytable">']
         table_str.append(make_html_row(["Articles Analyzed", self.totalarticles]))
+        table_str.append(make_html_row(["Total Sentences", self.totalsentences]))
         table_str.append(make_html_row(["Proteins found", self.protsummary.totalprots]))
         table_str.append(make_html_row(["Interactions retrieved", self.graphsummary.numinteractions]))
         table_str.append(make_html_row(["Unique interactions", self.graphsummary.uniqinteractions_count]))

@@ -7,6 +7,19 @@ from ppaxe import report
 from pycorenlp import StanfordCoreNLP
 import json
 
+
+def analyze_article(text):
+    '''
+    Returns analyzed article object. Useful for many tests
+    '''
+    art = core.Article(pmid="1234", fulltext=text)
+    art.extract_sentences()
+    for sentence in art.sentences:
+        sentence.annotate()
+        sentence.get_candidates()
+    return art
+
+
 def test_summary_totalcount():
     '''
     Tests totalcount of ProtSummary
@@ -16,15 +29,34 @@ def test_summary_totalcount():
              However, MAPK is a better target for peroxydase.
              The thing is, Schmidtea mediterranea is a good model organism because reasons.
              However, cryoglobulin is better.
-         """
-    article = core.Article(pmid="1234", fulltext=article_text)
-    article.extract_sentences()
-    for sentence in article.sentences:
-        sentence.annotate()
-        sentence.get_candidates()
+        """
+    article = analyze_article(article_text)
     summary = report.ReportSummary([article])
     summary.protsummary.makesummary()
     assert(summary.protsummary.prot_table['MAPK']['totalcount'] == 2)
+
+
+def test_summary_sentencecount():
+    '''
+    Tests number of sentences in total
+    '''
+    article1_text = """
+             MAPK seems to interact with chloroacetate esterase.
+             However, MAPK is a better target for peroxydase.
+             The thing is, Schmidtea mediterranea is a good model organism because reasons.
+             However, cryoglobulin is better.
+        """
+    article2_text = """
+             MAPK seems to interact with chloroacetate esterase.
+             However, MAPK is a better target for peroxydase.
+             The thing is, Schmidtea mediterranea is a good model organism because reasons.
+        """
+    NUMOFSENTENCES = 7
+    article1 = analyze_article(article1_text)
+    article2 = analyze_article(article2_text)
+    summary = report.ReportSummary([article1, article2])
+    assert(summary.totalsentences == NUMOFSENTENCES)
+
 
 def test_summary_intcount():
     '''

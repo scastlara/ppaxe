@@ -532,6 +532,9 @@ class Sentence(object):
         '''
         if not self.tokens:
             self.annotate()
+        if self.candidates:
+            return
+            
         # Get the proteins
         prot_counter = 0
         state        = 0
