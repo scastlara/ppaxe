@@ -65,13 +65,19 @@ RUN wget https://www.dropbox.com/s/t6qcl19g536c0zu/RF_scikit.pkl?dl=0 \
 RUN mkdir -vp /ppaxe/output \
     && chmod -v a+rwx /ppaxe/output
 
+##
+## System params... set up your own \n\
+##
+ENV CORENLP_THREADS=4
+ENV CORENLP_MAXMEM=4g
+
 RUN \
   echo '#!/bin/bash\n\
 SPD="/stanford-corenlp-full-2017-06-09"\n\
-java -mx1000m \\\n\
+nohup java -Xms${CORENLP_MAXMEM} -Xmx${CORENLP_MAXMEM} \\\n\
          -cp $SPD/stanford-corenlp-3.8.0.jar:$SPD/stanford-english-corenlp-2017-06-09-models.jar \\\n\
          edu.stanford.nlp.pipeline.StanfordCoreNLPServer \\\n\
-         -port 9000 \\\n\
+         -port 9000 -threads ${CORENLP_THREADS} \\\n\
          -serverProperties /ppaxe/ppaxe/data/server.properties \\\n\
          2> /dev/null 1>&2 &\n\
 \n\
