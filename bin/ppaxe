@@ -36,13 +36,6 @@ def get_options():
         help='Output file to print the retrieved interactions in tabular format.'
     )
     parser.add_argument(
-        '-m', '--mode',
-        help='''Type of analysis to perform: by default ppaxe will look for protein-protein interactions "ppi".
-                Can also be set to "symbols" to perform an analysis of the protein/gene symbols found on the
-                specified articles.''',
-        default="ppi"
-    )
-    parser.add_argument(
     '-r', '--report',
     help="Print html report with the specified name."
     )
@@ -51,10 +44,9 @@ def get_options():
         help="Increase output verbosity.",
         action="store_true"
     )
-
     parser.add_argument(
         '-i', '--ip',
-        help="Change the IP adress of the StanfordCoreNLP server. Default: http://localhost:9000",
+        help="Change the IP address of the StanfordCoreNLP server. Default: http://localhost:9000",
         default="http://localhost:9000"
     )
 
