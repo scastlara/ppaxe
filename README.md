@@ -1,7 +1,7 @@
 [![Build Status](https://travis-ci.org/scastlara/ppaxe.svg?branch=master)](https://travis-ci.org/scastlara/ppaxe)
 
 
-<img width="350" src="logo.png"/>
+<img width="350" src="ppaxe/logo.png"/>
 
 -----
 
