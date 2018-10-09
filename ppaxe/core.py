@@ -668,7 +668,11 @@ class InteractionCandidate(object):
         try:
             predictor = pickle.load(f)
         except:
-            predictor = pickle.load(f, encoding='latin1')
+            try:
+                predictor = pickle.load(f, encoding='latin1')
+            except Exception as err:
+                raise(CannotLoadClassifier("RF_scikit.pkl can't be loaded - %s" % err))
+
 
 
     def __init__(self, prot1, prot2):
@@ -1068,5 +1072,11 @@ class ProteinNotFound(Exception):
 class GeneDictError(Exception):
     '''
     Raised when dictionary can't be read
+    '''
+    pass
+
+class CannotLoadClassifier(Exception):
+    '''
+    Raised when classifier can't be loaded
     '''
     pass
