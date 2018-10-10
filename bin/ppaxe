@@ -154,16 +154,13 @@ def main():
 
     # START THE PROGRAM
     pmids = read_identifiers(options.pmids)
-    if options.mode == "ppi":
-        stats = get_ppi(options, start_time, pmids)
-        log.info("Total articles analyzed: %s", stats['total_articles'])
-        log.info("Total sentences analyzed: %s", stats['total_sentences'])
-        log.info("Total candidates found: %s", stats['total_candidates'])
-        log.info("Total interactions retrieved: %s", stats['total_interacts'])
-        log.info("Total time: ~%s seconds", round(time.time() - start_time))
-        log.info("Program finished: %s", str(datetime.now()))
-    else:
-        print("Perform Gene/Protein symbol analysis")
+    stats = get_ppi(options, start_time, pmids)
+    log.info("Total articles analyzed: %s", stats['total_articles'])
+    log.info("Total sentences analyzed: %s", stats['total_sentences'])
+    log.info("Total candidates found: %s", stats['total_candidates'])
+    log.info("Total interactions retrieved: %s", stats['total_interacts'])
+    log.info("Total time: ~%s seconds", round(time.time() - start_time))
+    log.info("Program finished: %s", str(datetime.now()))
 
 
 if __name__ == "__main__":

@@ -27,8 +27,8 @@ try:
     sys.setdefaultencoding('utf8')
 except:
     # For python 3
+    import html
     import _pickle as pickle
-    from html.parser import HTMLParser
     from importlib import reload
 
 
@@ -377,10 +377,13 @@ class Article(object):
             text = text.replace("<prd>",".")
             sentences = text.split("<stop>")
             #sentences = sentences[:-1]
-            sentences = [s.strip() for s in sentences]
-            h = HTMLParser()
+            sentences = [ s.strip() for s in sentences ]
+            try:
+                html = HTMLParser()
+            except:
+                import html
             for sentence in sentences:
-                sentence = str(h.unescape(sentence))
+                sentence = str(html.unescape(sentence))
                 if not sentence.strip() or not isinstance(sentence, str):
                     continue
                 self.sentences.append(Sentence(originaltext=sentence))
@@ -426,9 +429,8 @@ class Protein(object):
     '''
     GENEDICT = dict()
     GENEDICTFILE = pkg_resources.resource_filename('ppaxe', 'data/HGNC_gene_dictionary.txt')
-
     try:
-        with open(GENEDICTFILE, 'rb') as f:
+        with open(GENEDICTFILE, 'r') as f:
             for line in f:
                 line = line.strip()
                 cols = line.split("\t")
