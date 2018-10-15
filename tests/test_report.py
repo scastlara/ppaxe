@@ -201,7 +201,7 @@ def test_interaction_table_html():
 </thead>
 <tbody>
 <tr>
-<td>0.844</td>
+<td>0.653</td>
 <td>Mapk4</td>
 <td>MAPK</td>
 <td><a href="http://www.uniprot.org/uniprot/?query=MAPK4&sort=score" target="_blank">MAPK4</a></td>
@@ -211,7 +211,7 @@ def test_interaction_table_html():
 <td>However , <span class="prot"> Mapk4 </span> <span class="verb">interacts</span> directly with <span class="prot"> MAPK </span> .</td>
 </tr>
 <tr>
-<td>0.796</td>
+<td>0.547</td>
 <td>CPP3</td>
 <td>Akt3</td>
 <td><a href="http://www.uniprot.org/uniprot/?query=CPP3&sort=score" target="_blank">CPP3</a></td>
@@ -221,7 +221,7 @@ def test_interaction_table_html():
 <td><span class="prot"> CPP3 </span> <span class="verb">is</span> a molecular target of <span class="prot"> Akt3 </span> .</td>
 </tr>
 <tr>
-<td>0.744</td>
+<td>0.431</td>
 <td>MAPK</td>
 <td>MAPK4</td>
 <td><a href="http://www.uniprot.org/uniprot/?query=MAPK&sort=score" target="_blank">MAPK</a></td>
@@ -231,7 +231,7 @@ def test_interaction_table_html():
 <td><span class="prot"> MAPK </span> <span class="verb">seems</span> to <span class="verb">interact</span> with <span class="prot"> MAPK4 </span> .</td>
 </tr>
 <tr>
-<td>0.714</td>
+<td>0.364</td>
 <td>AKT3</td>
 <td>CPP3</td>
 <td><a href="http://www.uniprot.org/uniprot/?query=AKT3&sort=score" target="_blank">AKT3</a></td>

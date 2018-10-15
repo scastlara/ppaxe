@@ -979,12 +979,12 @@ class InteractionCandidate(object):
         self.votes = round(pred[0], 3)
         if pred >= 0.55:
             self.label = True
-            self._normalize_pred()
+            self.__normalize_pred()
         else:
             self.label = False
 
 
-    def _normalize_pred(self):
+    def __normalize_pred(self):
         '''
         Changes scale of votes in self.votes from 0.55-1 to 0-1.
         '''

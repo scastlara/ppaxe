@@ -249,7 +249,7 @@ def test_prediction():
         sentence.get_candidates()
         sentence.candidates[0].compute_features()
         sentence.candidates[0].predict()
-        assert(sentence.candidates[0].votes == 0.882)
+        assert(sentence.candidates[0].votes == 0.738)
 
 def test_candidate_tohtml():
     '''
@@ -317,3 +317,16 @@ def test_multiple_get_candidates():
     sentence.get_candidates()
     fcandidates = len(sentence.candidates)
     assert(ocandidates == fcandidates)
+
+
+def test_votes_normalization():
+    '''
+    Tests if min-max normalization of votes works.
+    Note that in a scale of 0-1 the value 0.775 has to be 0.5 (if the initial range is 0.55-1).
+    '''
+    prot1 = core.Protein(symbol="PROTEIN'\"", positions=[1], sentence=core.Sentence("This is a sentence"))
+    prot2 = core.Protein(symbol="PROTEIN2'\"", positions=[2], sentence=core.Sentence("This is a sentence"))
+    int_candidate = core.InteractionCandidate(prot1, prot2)
+    int_candidate.votes = 0.775
+    int_candidate._InteractionCandidate__normalize_pred()
+    assert(0.5 == int_candidate.votes)
