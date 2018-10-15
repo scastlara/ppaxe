@@ -40,14 +40,20 @@ def get_options():
     help="Print html report with the specified name."
     )
     parser.add_argument(
+        '-i', '--ip',
+        help="Change the IP address of the StanfordCoreNLP server. Default: http://localhost:9000",
+        default="http://localhost:9000"
+    )
+    parser.add_argument(
         '-v', '--verbose',
         help="Increase output verbosity.",
         action="store_true"
     )
     parser.add_argument(
-        '-i', '--ip',
-        help="Change the IP address of the StanfordCoreNLP server. Default: http://localhost:9000",
-        default="http://localhost:9000"
+        '-e', '--exclude',
+        help="Exclude protein symbols not annotated in dictionary.",
+        action="store_true",
+        default=False
     )
 
     try:
@@ -109,7 +115,7 @@ def get_ppi(options, start_time, pmids):
                 sentence.annotate()
             except ValueError:
                 continue
-            sentence.get_candidates()
+            sentence.get_candidates(options.exclude)
             # Predict candidate interactions
             for candidate in sentence.candidates:
                 stats['total_candidates'] += 1

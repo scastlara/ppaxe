@@ -286,7 +286,7 @@ class Article(object):
         self.fulltext   = fulltext
         self.sentences  = list()
 
-    def predict_interactions(self, source="fulltext"):
+    def predict_interactions(self, source="fulltext", only_dict=False):
         '''
         Simple wrapper method to avoid calls to multiple methods.
 
@@ -298,7 +298,7 @@ class Article(object):
         self.extract_sentences(source=source)
         for sentence in self.sentences:
             sentence.annotate()
-            sentence.get_candidates()
+            sentence.get_candidates(only_dict)
             for candidate in sentence.candidates:
                 candidate.predict()
 
@@ -434,6 +434,7 @@ class Protein(object):
             for line in f:
                 line = line.strip()
                 cols = line.split("\t")
+                GENEDICT[cols[0]] = cols[0]
                 for alias in cols[1:]:
                     GENEDICT[alias.upper()] = cols[0]
     except Exception:
@@ -460,6 +461,18 @@ class Protein(object):
         self.sentence = sentence
         self.synonym = list()
         self.count = len(positions)
+
+    def is_in_dict(self):
+        '''
+        Checks if a given protein symbol is in dictionary
+        '''
+        disambiguated = self.symbol.upper()
+        disambiguated = disambiguated.replace("'", "")
+        disambiguated = disambiguated.replace('"', '')
+        if disambiguated in Protein.GENEDICT:
+            return True
+        else:
+            return False
 
     def disambiguate(self):
         '''
@@ -527,7 +540,7 @@ class Sentence(object):
         if annotated['sentences']:
             self.tokens = annotated['sentences'][0]['tokens']
 
-    def get_candidates(self):
+    def get_candidates(self, only_dict=False):
         '''
         Gets interaction candidates candidates for sentence (attribute: candidates)
         and all the proteins (attribute: proteins).
@@ -562,8 +575,12 @@ class Sentence(object):
                 positions=prot_pos,
                 sentence=self
             )
+            if only_dict is True:
+                if not protein.is_in_dict():
+                    continue
             self.proteins.append(protein)
             prots_in_sentence.append(protein)
+
         # Create candidates for sentence
         for prot in itertools.combinations(prots_in_sentence, r=2):
             self.candidates.append(InteractionCandidate(prot1=prot[0], prot2=prot[1]))
@@ -991,7 +1008,6 @@ class InteractionCandidate(object):
         before = self.votes
         self.votes = (self.votes-0.55)/(1-0.55)
         self.votes = round(self.votes, 3)
-        print("B: %s A: %s\n" % (before, self.votes))
 
 
     def to_html(self):

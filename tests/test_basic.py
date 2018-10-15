@@ -86,6 +86,21 @@ def test_disambiguate():
     prot = core.Protein(symbol="PROTEIN'\"", positions=[1], sentence=core.Sentence("This is a sentence"))
     assert(prot.disambiguate() == "PROTEIN")
 
+
+def test_only_dictionary():
+    '''
+    Tests if restriction of proteins to only those in dictionary work.
+    '''
+    text = "ERK1 interacts with MAPK4. MPPK2 interacts with MAPK4."
+    article = core.Article(pmid="1234", fulltext=text)
+    article.extract_sentences()
+    total_candidates = 0
+    for sentence in article.sentences:
+        sentence.annotate()
+        sentence.get_candidates(only_dict=True)
+        total_candidates += len(sentence.candidates)
+    assert(total_candidates == 1)
+
 def test_token_distance():
     '''
     Tests token distance feature

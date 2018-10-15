@@ -12,6 +12,32 @@ Available for `python 2.7` and `python 3.x`, and also as a standalone [docker im
 
 ## Usage
 
+```
+usage: ppaxe [-h] -p PMIDS [-d DATABASE] [-o OUTPUT] [-r REPORT] [-i IP] [-v]
+             [-e]
+
+Command-line tool to retrieve protein-protein interactions from the scientific
+literature.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -p PMIDS, --pmids PMIDS
+                        Text file with a list of PMids or PMCids
+  -d DATABASE, --database DATABASE
+                        Download whole articles from database "PMC", or only
+                        abstracts from "PUBMED".
+  -o OUTPUT, --output OUTPUT
+                        Output file to print the retrieved interactions in
+                        tabular format.
+  -r REPORT, --report REPORT
+                        Print html report with the specified name.
+  -i IP, --ip IP        Change the IP address of the StanfordCoreNLP server.
+                        Default: http://localhost:9000
+  -v, --verbose         Increase output verbosity.
+  -e, --exclude         Exclude protein symbols not annotated in dictionary.
+```
+
+
 ### ppaxe classes
 
 ```python
@@ -142,6 +168,11 @@ ppcore.NLP = StanfordCoreNLP(your_new_adress)
 
 # Do whatever you want
 ```
+
+## Using the Gene dictionary
+
+By default, PPaxe uses the [HGNC](https://www.genenames.org/) dictionary of gene symbols to normalize the protein/gene symbols found in the article. The `ppaxe` command-line tool has the option `-e` that restricts all the results to only those proteins that match against the HGNC database. Users can change this file (located at `ppaxe/data/HGNC_gene_dictionary.txt`) in order to restrict their searches to only specific genes or proteins. 
+
 
 ## Documentation
 

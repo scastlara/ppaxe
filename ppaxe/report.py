@@ -215,8 +215,8 @@ class ReportSummary(object):
             Output filename of the html report. Will append ".html" to it.
         '''
         outfile = outfile + ".html"
-        stylesheet     = "https://cdn.rawgit.com/scastlara/ppaxe/master/ppaxe/data/style.css"
-        cytotemplate   = "https://cdn.rawgit.com/scastlara/ppaxe/51b2e788/ppaxe/data/cytoscape_template.js"
+        stylesheet     = "https://cdn.jsdelivr.net/gh/scastlara/ppaxe@3035a2c94f724f54bbcb327e480aeb6393989ff0/ppaxe/data/style.css"
+        cytotemplate   = "https://cdn.jsdelivr.net/gh/scastlara/ppaxe@51b2e7885ca0553adced1d5d362c6f0315ac12d9/ppaxe/data/cytoscape_template.js"
         datatables_css = "https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css"
         datatables_js  = "https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"
         with open(outfile, "w") as outf:
