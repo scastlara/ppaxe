@@ -979,8 +979,20 @@ class InteractionCandidate(object):
         self.votes = round(pred[0], 3)
         if pred >= 0.55:
             self.label = True
+            self._normalize_pred()
         else:
             self.label = False
+
+
+    def _normalize_pred(self):
+        '''
+        Changes scale of votes in self.votes from 0.55-1 to 0-1.
+        '''
+        before = self.votes
+        self.votes = (self.votes-0.55)/(1-0.55)
+        self.votes = round(self.votes, 3)
+        print("B: %s A: %s\n" % (before, self.votes))
+
 
     def to_html(self):
         '''
