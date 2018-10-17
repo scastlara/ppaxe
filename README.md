@@ -171,7 +171,7 @@ ppcore.NLP = StanfordCoreNLP(your_new_adress)
 
 ## Using the Gene dictionary
 
-By default, PPaxe uses the [HGNC](https://www.genenames.org/) dictionary of gene symbols to normalize the protein/gene symbols found in the article. The `ppaxe` command-line tool has the option `-e` that restricts all the results to only those proteins that match against the HGNC database. Users can change this file (located at `ppaxe/data/HGNC_gene_dictionary.txt`) in order to restrict their searches to only specific genes or proteins. 
+By default, PPaxe uses the [HGNC](https://www.genenames.org/) dictionary of gene symbols to normalize the protein/gene symbols found in the article. The `ppaxe` command-line tool has the option `-e` that restricts all the results to only those proteins that match against the HGNC database. Users can change this file (located at `ppaxe/data/HGNC_gene_dictionary.txt`) in order to restrict their searches to only specific genes or proteins, or to normalize gene names using a different dictionary.
 
 
 ## Documentation

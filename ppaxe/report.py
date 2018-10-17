@@ -6,7 +6,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import base64
-
+import networkx as nx
 from io import BytesIO
 
 
@@ -85,6 +85,7 @@ class ReportSummary(object):
         self.protsummary.makesummary()
         self.graphsummary.makesummary()
         self.plots['j_int_plot'], self.plots['j_prot_plot'], self.plots['a_year_plot'] = self.journal_plots()
+        self.plots['network_plot'] = self.graphsummary.network_plot
         self.write_html(outfile)
         # self.write_markdown(outfile)
         # self.create_pdf(outfile)
@@ -440,6 +441,7 @@ class GraphSummary(object):
         self.numinteractions = 0
         self.uniqinteractions = set()
         self.uniqinteractions_count = 0
+        self.network_plot = None
 
     def makesummary(self):
         '''
@@ -467,6 +469,30 @@ class GraphSummary(object):
                         )
         self.uniqinteractions_count = len(self.uniqinteractions)
         self.interactions     = sorted(self.interactions, key=lambda x: x[0], reverse=True)
+
+
+    def make_networkx_plot(self):
+        '''
+        Saves network plot for PDF output
+        '''
+        G = nx.Graph()
+        ints = list()
+        for interaction in self.interactions:
+            ints.append((interaction[2], interaction[4]))
+        G.add_edges_from(ints)
+        options = {
+            'node_color': '#FFB600',
+            'node_size': 500,
+            'with_labels': True,
+            'width': 1,
+
+        }
+        fig, axis = plt.subplots()
+        nx.draw_spring(G, **options)
+        sio_net = BytesIO()
+        fig.savefig(sio_net, format="png")
+        return sio_net
+
 
     def table_to_html(self):
         '''
