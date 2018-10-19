@@ -158,6 +158,23 @@ def test_candidates_multiple_sentences():
         total_candidates.extend(sentence.candidates)
     assert(total_candidates[-1].prot2.symbol == "PROT99")
 
+def test_multiple_interactions():
+    '''
+    Tests multiple interactions in a single sentence.
+    '''
+    text = "Cooperative MALT1 interaction with BCL10 filaments observed under EM suggests immediate dimerization of MALT1 in the BCL10 filamentous scaffold"
+    article = core.Article(pmid="1234", fulltext=text)
+    article.extract_sentences()
+    total_candidates = list()
+    for sentence in article.sentences:
+        sentence.get_candidates()
+        for candidate in sentence.candidates:
+            candidate.compute_features()
+            candidate.predict()
+            if candidate.label is True:
+                pass#print("%s: %s" % (candidate, candidate.votes))
+            else:
+                pass#print("%s: %s" % (candidate, candidate.votes))
 
 def test_get_pos_annotation():
     '''

@@ -993,10 +993,10 @@ class InteractionCandidate(object):
             self.compute_features()
         pred = InteractionCandidate.predictor.predict_proba(self.features_sparse)[:,1]
 
-        self.votes = round(pred[0], 3)
-        if pred >= 0.55:
+        self.votes = pred[0]
+        self.__normalize_pred()
+        if self.votes >= 0:
             self.label = True
-            self.__normalize_pred()
         else:
             self.label = False
 
@@ -1008,6 +1008,8 @@ class InteractionCandidate(object):
         before = self.votes
         self.votes = (self.votes-0.55)/(1-0.55)
         self.votes = round(self.votes, 3)
+
+        
 
 
     def to_html(self):
