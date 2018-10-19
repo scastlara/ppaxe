@@ -9,6 +9,8 @@ Tool to retrieve **protein-protein interactions** and calculate protein/gene sym
 
 Available for `python 2.7` and `python 3.x`, and also as a standalone [docker image](https://hub.docker.com/r/compgenlabub/ppaxe/).
 
+> **Visit the [PPaxe web application](https://compgen.bio.ub.edu/PPaxe) to use PPaxe on the web.**
+
 
 ## Usage
 
