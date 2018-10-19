@@ -148,7 +148,7 @@ class ReportSummary(object):
         fig, axis = plt.subplots()
         axis.bar(ind, count, width, color="#777acd")
         axis.set_xticks(ind)
-        axis.set_xticklabels(labels)
+        axis.set_xticklabels(labels, rotation=75)
         axis.set_title("Interactions retrieved per Year")
         axis.set_ylabel("count")
         fig.tight_layout()
