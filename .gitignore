@@ -1,3 +1,6 @@
 *.pyc
+stanford-corenlp*
+FINAL-ner-model.AImed+MedTag+BioInfer.ser.gz
+ppaxe/data/RF_scikit.pkl
 ppaxe/*.pyc
 tests/*.pyc
