@@ -12,7 +12,7 @@ requires = [
     ]
 
 setuptools.setup(name='ppaxe',
-      version='0.2',
+      version='1.0',
       description='Protein-Protein interactions extractor from PubMed articles',
       url='http://github.com/scastlara/ppaxe',
       author='S. Castillo-Lara',
