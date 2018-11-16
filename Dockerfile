@@ -28,6 +28,7 @@ RUN apt-get update \
                git \
                libpq-dev \
                make \
+               apt-utils \
                python-pip \
                python2.7 \
                python2.7-dev \
@@ -38,27 +39,33 @@ RUN apt-get update \
     && apt-get autoremove \
     && apt-get clean
 
+RUN pip install --upgrade pip
 RUN pip install -U "pycorenlp==0.3.0"
 RUN pip install -U "scipy==0.17.0"
 RUN pip install -U "sklearn==0.0"
 RUN pip install -U "requests==2.4.3"
 RUN pip install -U "scikit-learn==0.18.2"
 RUN pip install -U "matplotlib==2.0.2"
+RUN pip install -U "networkx==2.2"
+# RUN pip install -U "pysqlite"  # this is only for webapp
+RUN pip install -U "uuid"
 
 RUN wget http://nlp.stanford.edu/software/stanford-corenlp-full-2017-06-09.zip \
     && unzip stanford-corenlp-full-2017-06-09.zip \
-    && wget https://www.dropbox.com/s/ec3a4ey7s0k6qgy/FINAL-ner-model.AImed%2BMedTag%2BBioInfer.ser.gz?dl=0 \
+    && wget https://compgen.bio.ub.edu/datasets/PPaxe_files/FINAL-ner-model.AImed%2BMedTag%2BBioInfer.ser.gz \
          -O /stanford-corenlp-full-2017-06-09/FINAL-ner-model.AImed+MedTag+BioInfer.ser.gz \
     && wget http://nlp.stanford.edu/software/stanford-english-corenlp-2017-06-09-models.jar \
          -O /stanford-corenlp-full-2017-06-09/stanford-english-corenlp-2017-06-09-models.jar 
 
-RUN git --no-pager clone https://github.com/CompGenLabUB/ppaxe.git
+RUN echo "# Installing ppaxe lib..." \
+    && git --no-pager clone https://github.com/scastlara/ppaxe.git
+#        # repo clone at https://github.com/CompGenLabUB/ppaxe.git
 RUN sed -i 's%\.\./%/stanford-corenlp-full-2017-06-09/%' \
            /ppaxe/ppaxe/data/server.properties
 
 WORKDIR /ppaxe
 
-RUN wget https://www.dropbox.com/s/t6qcl19g536c0zu/RF_scikit.pkl?dl=0 \
+RUN wget https://compgen.bio.ub.edu/datasets/PPaxe_files/RF_scikit.pkl \
       -O ./ppaxe/data/RF_scikit.pkl \
     && pip install ./
 
