@@ -5,12 +5,15 @@ requires = [
     'scipy',
     'sklearn',
     'requests',
+    'xml',
+    'networkx',
+    'uuid',
     'matplotlib'
     ]
 
 setuptools.setup(name='ppaxe',
       version='0.2',
-      description='PPI extractor from PubMed articles',
+      description='Protein-Protein interactions extractor from PubMed articles',
       url='http://github.com/scastlara/ppaxe',
       author='S. Castillo-Lara',
       author_email='s.cast.lara@gmail.com',
