@@ -5,7 +5,6 @@ requires = [
     'scipy',
     'sklearn',
     'requests',
-    'xml',
     'networkx',
     'uuid',
     'matplotlib'
