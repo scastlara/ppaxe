@@ -10,6 +10,15 @@ Available for `python 2.7` and `python 3.x`, and also as a standalone [docker im
 
 > **Visit the [PPaxe web application](https://compgen.bio.ub.edu/PPaxe) to use PPaxe on the web.**
 
+## Citation
+
+```
+S. Castillo-Lara, J.F. Abril
+PPaxe: easy extraction of protein occurrence and interactions from the scientific literature
+Bioinformatics, AOP November 2018, bty988.
+```
+* [link to the published paper](https://academic.oup.com/bioinformatics/advance-article-abstract/doi/10.1093/bioinformatics/bty988/5221011)
+
 
 ## Usage
 
