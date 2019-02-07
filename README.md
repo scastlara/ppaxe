@@ -17,7 +17,7 @@ S. Castillo-Lara, J.F. Abril
 PPaxe: easy extraction of protein occurrence and interactions from the scientific literature
 Bioinformatics, AOP November 2018, bty988.
 ```
-* [link to the published paper](https://academic.oup.com/bioinformatics/advance-article-abstract/doi/10.1093/bioinformatics/bty988/5221011)
+* [Link to the published paper](https://academic.oup.com/bioinformatics/advance-article-abstract/doi/10.1093/bioinformatics/bty988/5221011)
 
 
 ## Usage
