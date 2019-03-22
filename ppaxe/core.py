@@ -438,7 +438,7 @@ class Protein(object):
                 for alias in cols[1:]:
                     GENEDICT[alias.upper()] = cols[0]
     except Exception:
-        raise GeneDictError("Can't read %s\n" % GENEDICTFILE)
+        raise FileNotFoundError("Can't read gene dictionary file %s\n" % GENEDICTFILE)
 
 
     def __init__(self, symbol, positions, sentence):
