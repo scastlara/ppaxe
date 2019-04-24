@@ -30,7 +30,7 @@ docker run -v /local/path/to/output:/ppaxe/output:rw \
               compgenlabub/ppaxe -v -p ./papers.pmids -o ./output.tbl -r ./report
 ```
 
-If you want to install PPaxe manually, go to the _Install ppaxe manually_ section.
+If you want to install PPaxe manually, go to the [Install ppaxe manually](#install-ppaxe-manually) section.
 
 
 ## Usage
