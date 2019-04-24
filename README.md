@@ -22,7 +22,6 @@ Bioinformatics, AOP November 2018, bty988.
 
 ## Quick Installation
 
-### Docker
 To download and use the ppaxe Docker image:
 
 ```sh
