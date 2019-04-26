@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/scastlara/ppaxe.svg?branch=master)](https://travis-ci.org/scastlara/ppaxe) [![PyPI version](https://badge.fury.io/py/ppaxe.svg)](https://badge.fury.io/py/ppaxe)
-[![Coverage](https://coveralls.io/repos/github/scastlara/ppaxe/badge.svg?branch=master) 
+![Coverage](https://coveralls.io/repos/github/scastlara/ppaxe/badge.svg?branch=master) 
 
 <img width="350" src="ppaxe/logo.png"/>) 
 
