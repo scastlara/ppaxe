@@ -17,7 +17,7 @@ install:
   - cd ..
 
 # command to run tests
-script: pytest --cov=ppaxe/ tests/
+script: export PYTHONPATH=. && pytest --cov=ppaxe/ tests/
 
 after_success:
   - coveralls
