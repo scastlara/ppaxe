@@ -20,6 +20,19 @@ Bioinformatics, AOP November 2018, bty988.
 * [Link to the published paper](https://academic.oup.com/bioinformatics/advance-article-abstract/doi/10.1093/bioinformatics/bty988/5221011)
 
 
+## Quick Installation
+
+To download and use the ppaxe Docker image:
+
+```sh
+docker pull compgenlabub/ppaxe:latest
+docker run -v /local/path/to/output:/ppaxe/output:rw \
+              compgenlabub/ppaxe -v -p ./papers.pmids -o ./output.tbl -r ./report
+```
+
+If you want to install PPaxe manually, go to the [Install ppaxe manually](#install-ppaxe-manually) section.
+
+
 ## Usage
 
 ```
@@ -98,18 +111,8 @@ The report output (`option -r`) will contain a simple summary of the analysis, t
 <img src="https://raw.githubusercontent.com/scastlara/ppaxe/master/ppaxe/data/report2-example.png"/>
 
 
-## Installing
 
-### Docker
-To download and use the ppaxe Docker image:
-
-```sh
-docker pull compgenlabub/ppaxe:latest
-docker run -v /local/path/to/output:/ppaxe/output:rw \
-              compgenlabub/ppaxe -v -p ./papers.pmids -o ./output.tbl -r ./report
-```
-
-### Install ppaxe manually
+## Install ppaxe manually
 
 * **Prerequisites**
 

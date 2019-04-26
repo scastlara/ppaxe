@@ -1,7 +1,7 @@
-pycorenlp==0.3.0
-scipy==0.17.0
-sklearn==0.0
-requests==2.4.3
-scikit-learn==0.18.2
-matplotlib==2.0.2
+pycorenlp
+scipy
+sklearn
+requests
+scikit-learn
+matplotlib
 networkx
