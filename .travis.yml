@@ -12,9 +12,11 @@ install:
   - pip install -r ../requirements.txt
   - wget https://www.dropbox.com/s/t6qcl19g536c0zu/RF_scikit.pkl?dl=0 -O ../ppaxe/data/RF_scikit.pkl
   - pip install ../
-  - pip install codecov
+  - pip install pytest-cov
+  - pip install coveralls
+  - cd ..
 # command to run tests
-script: python -m pytest ../tests
+script: pyest --cov=ppaxe/ tests/
 
 after_success:
-  - codecov
+  - coveralls
