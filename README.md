@@ -1,4 +1,9 @@
-[![Build Status](https://travis-ci.org/scastlara/ppaxe.svg?branch=master)](https://travis-ci.org/scastlara/ppaxe) [![PyPI version](https://badge.fury.io/py/ppaxe.svg)](https://badge.fury.io/py/ppaxe)
+[![Publication](https://img.shields.io/badge/Published-Bioinformatics-informational.svg)](https://doi.org/10.1093/bioinformatics/bty988)
+[![Build Status](https://travis-ci.org/scastlara/ppaxe.svg?branch=master)](https://travis-ci.org/scastlara/ppaxe) 
+[![Coverage Status](https://coveralls.io/repos/github/scastlara/ppaxe/badge.svg?branch=master)](https://coveralls.io/github/scastlara/ppaxe?branch=master) 
+[![PyPI version](https://badge.fury.io/py/ppaxe.svg)](https://badge.fury.io/py/ppaxe)
+
+
 
 <img width="350" src="ppaxe/logo.png"/>
 
