@@ -90,6 +90,10 @@ for article in query:
                 print("%s interacts with %s in article %s" % (candidate.prot1.symbol, candidate.prot2.symbol, article.pmid ))
                 print(candidate.to_html())
 
+# Alternatively
+for prediction in article.predictions:
+  print(prediction.to_html())
+
 # Print html report
 # Will create 'report_file.html'
 summary = report.ReportSummary(query)
