@@ -374,7 +374,7 @@ def test_predictions_method_filled_content():
     article = core.Article(pmid="1234", fulltext=article_text)
     article.predict_interactions()
     predictions = article.predictions
-    assert(isinstance(predictions, core.InteractionCandidate))
+    assert(isinstance(predictions[0], core.InteractionCandidate))
 
 def test_predictions_method_empty():
     """
