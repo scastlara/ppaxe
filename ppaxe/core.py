@@ -302,6 +302,19 @@ class Article(object):
             for candidate in sentence.candidates:
                 candidate.predict()
 
+    @property
+    def predictions(self):
+        """
+        Returns list of predictions
+        """
+        predictions = []
+        if self.sentences:
+            for sentence in self.sentences:
+                for candidate in sentence.candidates:
+                    if candidate.label is True:
+                        predictions.append(candidate)
+        return predictions
+        
     def as_html(self):
         '''
         Writes tokenized sentences as HTML
@@ -387,20 +400,6 @@ class Article(object):
                 if not sentence.strip() or not isinstance(sentence, str):
                     continue
                 self.sentences.append(Sentence(originaltext=sentence))
-
-    @property
-    def predictions(self):
-        """
-        Returns list of predictions
-        """
-        predictions = []
-        if self.sentences:
-            for sentence in self.sentences:
-                for candidate in sentence.candidates:
-                    if candidate.label is True:
-                        predictions.append(candidate)
-        return predictions
-
 
     def count_genes(self):
         '''
