@@ -345,3 +345,49 @@ def test_votes_normalization():
     int_candidate.votes = 0.775
     int_candidate._InteractionCandidate__normalize_pred()
     assert(0.5 == int_candidate.votes)
+
+def test_predictions_method_filled_length():
+    """
+    Tests article prediction method when prediction has been performed
+    """
+    article_text = """
+        MAPK seems to interact with chloroacetate esterase.
+        However, MAPK is a better target for peroxydase.
+        The thing is, Schmidtea mediterranea is a good model organism because reasons.
+        However, cryoglobulin is better.
+    """
+    article = core.Article(pmid="1234", fulltext=article_text)
+    article.predict_interactions()
+    predictions = article.predictions
+    assert(len(predictions) ==  2)
+
+def test_predictions_method_filled_content():
+    """
+    Tests article prediction method when prediction has been performed
+    """
+    article_text = """
+        MAPK seems to interact with chloroacetate esterase.
+        However, MAPK is a better target for peroxydase.
+        The thing is, Schmidtea mediterranea is a good model organism because reasons.
+        However, cryoglobulin is better.
+    """
+    article = core.Article(pmid="1234", fulltext=article_text)
+    article.predict_interactions()
+    predictions = article.predictions
+    assert(isinstance(predictions, core.InteractionCandidate))
+
+def test_predictions_method_empty():
+    """
+    Tests article prediction method when prediction has been performed
+    """
+    article_text = """
+        MAPK seems to interact with chloroacetate esterase.
+        However, MAPK is a better target for peroxydase.
+        The thing is, Schmidtea mediterranea is a good model organism because reasons.
+        However, cryoglobulin is better.
+    """
+    article = core.Article(pmid="1234", fulltext=article_text)
+    predictions = article.predictions
+    assert(predictions == [])
+
+

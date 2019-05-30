@@ -388,6 +388,20 @@ class Article(object):
                     continue
                 self.sentences.append(Sentence(originaltext=sentence))
 
+    @property
+    def predictions(self):
+        """
+        Returns list of predictions
+        """
+        predictions = []
+        if self.sentences:
+            for sentence in self.sentences:
+                for candidate in sentence.candidates:
+                    if candidate.label is True:
+                        predictions.append(candidate)
+        return predictions
+
+
     def count_genes(self):
         '''
         Returns how many times each gene appears.
