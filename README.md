@@ -79,18 +79,9 @@ query.get_articles()
 
 # Retrieve interactions from text
 for article in query:
-    article.predict_interactions()
+    article.extract_interactions()
 
-# Iterate through predictions
-for article in query:
-    for sentence in article.sentences:
-        for candidate in sentence.candidates:
-            if candidate.label is True:
-                # We have an interaction
-                print("%s interacts with %s in article %s" % (candidate.prot1.symbol, candidate.prot2.symbol, article.pmid ))
-                print(candidate.to_html())
-
-# Alternatively
+# Get the predictions
 for prediction in article.predictions:
   print(prediction.to_html())
 

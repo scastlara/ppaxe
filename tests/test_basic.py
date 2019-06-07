@@ -357,7 +357,7 @@ def test_predictions_method_filled_length():
         However, cryoglobulin is better.
     """
     article = core.Article(pmid="1234", fulltext=article_text)
-    article.predict_interactions()
+    article.extract_interactions()
     predictions = article.predictions
     assert(len(predictions) ==  2)
 
@@ -372,13 +372,13 @@ def test_predictions_method_filled_content():
         However, cryoglobulin is better.
     """
     article = core.Article(pmid="1234", fulltext=article_text)
-    article.predict_interactions()
+    article.extract_interactions()
     predictions = article.predictions
     assert(isinstance(predictions[0], core.InteractionCandidate))
 
 def test_predictions_method_empty():
     """
-    Tests article prediction method when prediction has been performed
+    Tests article prediction method when prediction has NOT been performed
     """
     article_text = """
         MAPK seems to interact with chloroacetate esterase.
@@ -389,5 +389,3 @@ def test_predictions_method_empty():
     article = core.Article(pmid="1234", fulltext=article_text)
     predictions = article.predictions
     assert(predictions == [])
-
-

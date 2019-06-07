@@ -286,7 +286,7 @@ class Article(object):
         self.fulltext   = fulltext
         self.sentences  = list()
 
-    def predict_interactions(self, source="fulltext", only_dict=False):
+    def extract_interactions(self, source="fulltext", only_dict=False):
         '''
         Simple wrapper method to avoid calls to multiple methods.
 
@@ -297,10 +297,8 @@ class Article(object):
         '''
         self.extract_sentences(source=source)
         for sentence in self.sentences:
-            sentence.annotate()
-            sentence.get_candidates(only_dict)
-            for candidate in sentence.candidates:
-                candidate.predict()
+            sentence.extract_interactions(only_dict)
+        
 
     @property
     def predictions(self):
@@ -308,11 +306,8 @@ class Article(object):
         Returns list of predictions
         """
         predictions = []
-        if self.sentences:
-            for sentence in self.sentences:
-                for candidate in sentence.candidates:
-                    if candidate.label is True:
-                        predictions.append(candidate)
+        for sentence in self.sentences:
+            predictions.extend(sentence.get_interactions())
         return predictions
         
     def as_html(self):
@@ -637,6 +632,23 @@ class Sentence(object):
                     # Continues protein
                     html_list.append(word)
         return " ".join(html_list)
+
+    def extract_interactions(self, only_dict):
+        """
+        Extracts interactions described in sentence.
+        """
+        self.annotate()
+        self.get_candidates(only_dict)
+        for candidate in self.candidates:
+            candidate.predict()
+
+    def get_interactions(self):
+        """
+        Returns true candidates annotated in sentence (if any)
+        """
+        interactions = [ candidate for candidate in self.candidates if candidate.label is True ]
+        return interactions
+        
 
     def __str__(self):
         return self.originaltext
