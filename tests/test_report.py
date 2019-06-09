@@ -266,7 +266,7 @@ def test_journal_plots():
     ]
 
     for article in articles:
-        article.predict_interactions()
+        article.extract_interactions()
     summary = report.ReportSummary(articles)
     fig1, fig2, fig3 = summary.journal_plots()
     assert(fig1 and fig2 and fig3)
@@ -293,7 +293,7 @@ def test_journal_plots_longjournal():
     ]
 
     for article in articles:
-        article.predict_interactions()
+        article.extract_interactions()
     summary = report.ReportSummary(articles)
     fig1, fig2, fig3 = summary.journal_plots()
     assert(fig1 and fig2 and fig3)
@@ -320,6 +320,6 @@ def test_report_html():
     ]
 
     for article in articles:
-        article.predict_interactions()
+        article.extract_interactions()
     summary = report.ReportSummary(articles)
     summary.make_report("kktest")
